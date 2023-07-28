@@ -6,11 +6,11 @@ import rospy
 from geometry_msgs.msg import Twist
 import time
 import consts as const
-x= 0
+x=0
 y=0
 
 def draw(mask,color):
-    global x
+    global x,y
     contornos,_ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     for c in contornos:
@@ -49,6 +49,7 @@ ret,frame = cap.read()
 midpoint = 0
 if(ret): 
     midpoint = frame.shape[1]/2
+    midheight = frame.shape[2]/2
 
 while not rospy.is_shutdown():
     ret,frame = cap.read()
@@ -64,7 +65,6 @@ while not rospy.is_shutdown():
         b = draw(maskGreen,(0,255,0))
         c = draw(maskRed,(0,0,255))
         frameFlip = cv2.flip(frame,1)
-        print(cont)
         if (b == True):
             if (cont == True):
                 print("Piedra verde detectada")
@@ -80,20 +80,21 @@ while not rospy.is_shutdown():
         else:
             cont = True
             
+        detected = a == True or b==True or c ==True
         
-        if (midpoint*2-x+const.ANGLE_ERROR >midpoint and midpoint*2-x-const.ANGLE_ERROR<midpoint):
+        if (midpoint*2-x+const.ANGLE_ERROR >midpoint and midpoint*2-x-const.ANGLE_ERROR<midpoint and detected):
             print("Esta en frente")
             twist.linear.x=.33
             twist.angular.z=0
-        elif (midpoint>(2*midpoint-x) -const.ANGLE_ERROR):
+        elif (midpoint>(2*midpoint-x) -const.ANGLE_ERROR and detected):
             print("Esta a la izquierda")
             twist.linear.x=0.16
             twist.angular.z=-0.16
-        elif ((2*midpoint-x) +const.ANGLE_ERROR >midpoint):
+        elif ((2*midpoint-x) +const.ANGLE_ERROR >midpoint and detected):
             print("Esta a la derecha")
             twist.linear.x=0.16
             twist.angular.z=0.16
-        if(a == False and b==False and c ==False):
+        if( not detected):
             twist.linear.x=0
             twist.angular.z=0
 
