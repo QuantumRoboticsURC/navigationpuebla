@@ -25,6 +25,35 @@ def draw(mask,color):
             cv2.drawContours(frame, [nuevoContorno],0,color,3)
             return True
     return False
+def y_axis_center(cam,rock):
+    global rocks,colors
+    while True:
+        ret,frame = cam.read()
+        if ret == True:
+            frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
+            maskBlue = cv2.inRange(frameHSV,blueLow,blueHigh)
+            maskGreen = cv2.inRange(frameHSV,greenLow,greenHigh)
+            maskRed1= cv2.inRange(frameHSV,redLow1, redHigh1)
+            maskReed2 = cv2.inRange(frameHSV,redLow2,redHigh2)
+            maskRed = cv2.add(maskRed1,maskReed2)
+            detected=draw(colors[rock][0].colors[rock][1])
+            frameFlip = cv2.flip(frame,1) 
+
+            if (midheight*2-x+const.DISTANCE_ERROR >midheight and midheight*2-x-const.DISTANCE_ERROR<midheight and detected):
+                print("Esta en frente")
+                twist.linear.x=0
+                twist.angular.z=0
+                rocks.append(rock)
+                break
+            elif (midheight>(2*midheight-x) -const.DISTANCE_ERROR and detected):
+                print("Esta a la abajo")
+                twist.linear.x=0.08
+                twist.angular.z=0
+            elif ((2*midheight-x) +const.DISTANCE_ERROR >midheight and detected):
+                print("Esta a la arriba")
+                twist.linear.x=-0.08
+                twist.angular.z=0                
+    
 
 rospy.init_node("center_and_aproach",anonymous=True)
 cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1)
@@ -47,13 +76,15 @@ redHigh2 = np.array([179,255,255], np.uint8)
 cont = True
 ret,frame = cap.read()
 midpoint = 0
+rocks = []
+rock = ""
+colors = {}
 if(ret): 
     midpoint = frame.shape[1]/2
     midheight = frame.shape[2]/2
 
 while not rospy.is_shutdown():
     ret,frame = cap.read()
-
     if ret == True:
         frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
         maskBlue = cv2.inRange(frameHSV,blueLow,blueHigh)
@@ -64,28 +95,37 @@ while not rospy.is_shutdown():
         a =draw(maskBlue,(255,0,0))
         b = draw(maskGreen,(0,255,0))
         c = draw(maskRed,(0,0,255))
+        colors["Blue"]=[maskBlue,(255,0,0)]
+        colors["Green"]=[maskGreen,(0,255,0)]
+        colors["Red"]=[maskRed,(0,0,255)]
         frameFlip = cv2.flip(frame,1)
         if (b == True):
             if (cont == True):
                 print("Piedra verde detectada")
                 cont = False
+                rock = "Green"
         elif (a == True):
             if (cont == True):
                 print("Piedra azul detectada")
                 cont = False
+                rock = "Blue"
         elif (c == True):
             if (cont == True):
                 print("Piedra roja detectada")
                 cont = False
+                rock = "Red"
         else:
             cont = True
             
         detected = a == True or b==True or c ==True
-        
+
         if (midpoint*2-x+const.ANGLE_ERROR >midpoint and midpoint*2-x-const.ANGLE_ERROR<midpoint and detected):
             print("Esta en frente")
             twist.linear.x=.33
             twist.angular.z=0
+            #Change this cap variable for the second camera 
+            #y_axis_center(cap,rock)
+                
         elif (midpoint>(2*midpoint-x) -const.ANGLE_ERROR and detected):
             print("Esta a la izquierda")
             twist.linear.x=0.16
