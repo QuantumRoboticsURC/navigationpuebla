@@ -137,8 +137,10 @@ while not rospy.is_shutdown():
             print("Esta en frente")
             twist.linear.x=.33
             twist.angular.z=0
-            cv2.destroyWindow("video")
-            y_axis_center(rock)
+            time.sleep(2000)
+            break
+            #cv2.destroyWindow("video")
+            #y_axis_center(rock)
         elif (midpoint>(2*midpoint-x) -const.ANGLE_ERROR and detected):
             print("Esta a la izquierda")
             twist.linear.x=0.0
