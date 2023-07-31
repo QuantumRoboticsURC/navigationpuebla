@@ -12,7 +12,6 @@ y=0
 def draw(mask,color):
     global x,y
     contornos,_ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
     for c in contornos:
         area = cv2.contourArea(c)
         if area > 3000:
@@ -25,9 +24,13 @@ def draw(mask,color):
             cv2.drawContours(frame, [nuevoContorno],0,color,3)
             return True
     return False
-def y_axis_center(cam,rock):
-    global rocks,colors
-    while True:
+
+def y_axis_center(rock):
+    global rocks,colors,midheight
+    cam = cv2.VideoCapture("/dev/video1")
+    time.sleep(1)
+    print("Entered second camera ")
+    while not rospy.is_shutdown():
         ret,frame = cam.read()
         if ret == True:
             frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
@@ -36,30 +39,38 @@ def y_axis_center(cam,rock):
             maskRed1= cv2.inRange(frameHSV,redLow1, redHigh1)
             maskReed2 = cv2.inRange(frameHSV,redLow2,redHigh2)
             maskRed = cv2.add(maskRed1,maskReed2)
-            detected=draw(colors[rock][0].colors[rock][1])
+            a =draw(maskBlue,(255,0,0))
+            b = draw(maskGreen,(0,255,0))
+            c = draw(maskRed,(0,0,255))
             frameFlip = cv2.flip(frame,1) 
-
-            if (midheight*2-x+const.DISTANCE_ERROR >midheight and midheight*2-x-const.DISTANCE_ERROR<midheight and detected):
+            detected = a == True or b==True or c ==True
+            cv2.imshow('video1',frameFlip)
+            print(y)
+            if (y+const.DISTANCE_ERROR >midheight and y-const.DISTANCE_ERROR<midheight and detected):
                 print("Esta en frente")
                 twist.linear.x=0
                 twist.angular.z=0
                 rocks.append(rock)
+                print("Eureka")
                 break
-            elif (midheight>(2*midheight-x) -const.DISTANCE_ERROR and detected):
-                print("Esta a la abajo")
+            elif (midheight<y +const.DISTANCE_ERROR and detected):
+                print("Esta abajo")
                 twist.linear.x=0.08
                 twist.angular.z=0
-            elif ((2*midheight-x) +const.DISTANCE_ERROR >midheight and detected):
-                print("Esta a la arriba")
+            elif (y-const.DISTANCE_ERROR <midheight and detected):
+                print("Esta arriba")
                 twist.linear.x=-0.08
-                twist.angular.z=0                
+                twist.angular.z=0
+            cmd_vel_pub.publish(twist)   
+            time.sleep(.1)      
+                   
     
 
 rospy.init_node("center_and_aproach",anonymous=True)
 cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1)
 twist = Twist()
         
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("/dev/video0")
 
 blueLow = np.array([95,100,20], np.uint8)
 blueHigh = np.array([125,255,255], np.uint8)
@@ -76,9 +87,11 @@ redHigh2 = np.array([179,255,255], np.uint8)
 cont = True
 ret,frame = cap.read()
 midpoint = 0
+midheight=0
 rocks = []
 rock = ""
 colors = {}
+
 if(ret): 
     midpoint = frame.shape[1]/2
     midheight = frame.shape[2]/2
@@ -86,6 +99,7 @@ if(ret):
 while not rospy.is_shutdown():
     ret,frame = cap.read()
     if ret == True:
+
         frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
         maskBlue = cv2.inRange(frameHSV,blueLow,blueHigh)
         maskGreen = cv2.inRange(frameHSV,greenLow,greenHigh)
@@ -95,10 +109,8 @@ while not rospy.is_shutdown():
         a =draw(maskBlue,(255,0,0))
         b = draw(maskGreen,(0,255,0))
         c = draw(maskRed,(0,0,255))
-        colors["Blue"]=[maskBlue,(255,0,0)]
-        colors["Green"]=[maskGreen,(0,255,0)]
-        colors["Red"]=[maskRed,(0,0,255)]
         frameFlip = cv2.flip(frame,1)
+
         if (b == True):
             if (cont == True):
                 print("Piedra verde detectada")
@@ -119,29 +131,26 @@ while not rospy.is_shutdown():
             
         detected = a == True or b==True or c ==True
 
+        cv2.imshow('video',frameFlip)
+
         if (midpoint*2-x+const.ANGLE_ERROR >midpoint and midpoint*2-x-const.ANGLE_ERROR<midpoint and detected):
             print("Esta en frente")
             twist.linear.x=.33
             twist.angular.z=0
-            #Change this cap variable for the second camera 
-            #y_axis_center(cap,rock)
-                
+            cv2.destroyWindow("video")
+            y_axis_center(rock)
         elif (midpoint>(2*midpoint-x) -const.ANGLE_ERROR and detected):
             print("Esta a la izquierda")
-            twist.linear.x=0.16
-            twist.angular.z=-0.16
+            twist.linear.x=0.0
+            twist.angular.z=-0.33
         elif ((2*midpoint-x) +const.ANGLE_ERROR >midpoint and detected):
             print("Esta a la derecha")
-            twist.linear.x=0.16
-            twist.angular.z=0.16
-        if( not detected):
+            twist.linear.x=0
+            twist.angular.z=0.33
+        
+        if(not detected):
             twist.linear.x=0
             twist.angular.z=0
-
-        
-
-        cv2.imshow('video',frameFlip)
-
 
         if cv2.waitKey(1) & 0xFF ==ord('s'):
             break

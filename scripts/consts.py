@@ -1,5 +1,5 @@
 ANGLE_ERROR = 30
-
+DISTANCE_ERROR = 30
 
 def get_ANGLE_ERROR():
     return ANGLE_ERROR
