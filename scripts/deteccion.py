@@ -27,11 +27,12 @@ def draw(mask,color):
 
 def y_axis_center(rock):
     global rocks,colors,midheight
-    cam = cv2.VideoCapture("/dev/video1")
+    cam = cv2.VideoCapture("/dev/video5")
     time.sleep(1)
     print("Entered second camera ")
     while not rospy.is_shutdown():
         ret,frame = cam.read()
+        print(ret)
         if ret == True:
             frameHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
             maskBlue = cv2.inRange(frameHSV,blueLow,blueHigh)
@@ -91,12 +92,12 @@ midheight=0
 rocks = []
 rock = ""
 colors = {}
-
+control = True
 if(ret): 
     midpoint = frame.shape[1]/2
     midheight = frame.shape[2]/2
 
-while not rospy.is_shutdown():
+while not rospy.is_shutdown() and control:
     ret,frame = cap.read()
     if ret == True:
 
@@ -134,21 +135,26 @@ while not rospy.is_shutdown():
         cv2.imshow('video',frameFlip)
 
         if (midpoint*2-x+const.ANGLE_ERROR >midpoint and midpoint*2-x-const.ANGLE_ERROR<midpoint and detected):
-            print("Esta en frente")
-            twist.linear.x=.33
+            twist.linear.x=0
             twist.angular.z=0
-            time.sleep(2000)
-            break
-            #cv2.destroyWindow("video")
-            #y_axis_center(rock)
+            cmd_vel_pub.publish(twist)
+            print("Esta en frente")
+            twist.linear.x=.20
+            twist.angular.z=0
+            time.sleep(1)
+            cmd_vel_pub.publish(twist)
+            time.sleep(2)
+            cv2.destroyWindow("video")
+            control = False
+            y_axis_center(rock)
         elif (midpoint>(2*midpoint-x) -const.ANGLE_ERROR and detected):
             print("Esta a la izquierda")
             twist.linear.x=0.0
-            twist.angular.z=-0.33
+            twist.angular.z=-0.16
         elif ((2*midpoint-x) +const.ANGLE_ERROR >midpoint and detected):
             print("Esta a la derecha")
             twist.linear.x=0
-            twist.angular.z=0.33
+            twist.angular.z=0.16
         
         if(not detected):
             twist.linear.x=0
