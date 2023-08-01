@@ -122,13 +122,13 @@ class Center():
                     time.sleep(2)
                     center_rock = False #This should be True, currently for testing it is set to False. 
                 elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected):
-                    print("Esta a la izquierda")
-                    self.twist.linear.x=0.0
-                    self.twist.angular.z=-0.16
-                elif ((2*self.midpoint-self.x) +const.ANGLE_ERROR >self.midpoint and detected):
                     print("Esta a la derecha")
-                    self.twist.linear.x=0
+                    self.twist.linear.x=0.0
                     self.twist.angular.z=0.16
+                elif ((2*self.midpoint-self.x) +const.ANGLE_ERROR >self.midpoint and detected):
+                    print("Esta a la izquierda")
+                    self.twist.linear.x=0
+                    self.twist.angular.z=-0.16
                 #This part of the code has to be reviewd once the search routine is determined
                 if(not detected):
                     self.twist.linear.x=0
