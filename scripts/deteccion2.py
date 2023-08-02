@@ -7,7 +7,7 @@ from geometry_msgs.msg import Twist
 import time
 import consts as const
 from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 
 class Center():
     def __init__(self):
@@ -17,6 +17,8 @@ class Center():
         self.twist = Twist()
         self.image_pub = rospy.Publisher("/detection_image_raw",Image,queue_size=10)
         self.image_pub_arm = rospy.Publisher("/detection_arm__image_raw",Image,queue_size=10)
+        self.image_pub_compressed = rospy.Publisher("/detection_image_raw",Image,queue_size=10)
+        self.image_pub_arm_compressed = rospy.Publisher("/detection_arm__image_raw",Image,queue_size=10)
         #Position Variables
         self.x = 0
         self.y = 0
@@ -83,7 +85,7 @@ class Center():
                 frameFlip = cv2.flip(self.frame,1)
                 #Creates an image message with the contours drawn by the draw function
                 img_msg = self.bridge.cv2_to_imgmsg(self.frame,"bgr8")
-
+                #img_msg_compressed = self.bridge.cv2_to_compressed_imgmsg(self.frame,"brg8")
                 #Checks if the rock has been continuously detected
                 if (b == True):
                     if (cont == True):
@@ -165,8 +167,10 @@ class Center():
                     break
                 self.cmd_vel_pub.publish(self.twist)
                 self.image_pub.publish(img_msg)
+                #self.image_pub_compressed.publish(img_msg_compressed)
                 
                 time.sleep(.1)
+                rospy.Rate(10).sleep()  
         cv2.destroyAllWindows()        
 if __name__=="__main__":
     center = Center()
