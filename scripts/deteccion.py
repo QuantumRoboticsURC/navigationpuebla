@@ -46,7 +46,7 @@ def y_axis_center(rock):
             c = draw(maskRed,(0,0,255))
             frameFlip = cv2.flip(frame,1) 
             detected = a == True or b==True or c ==True
-            cv2.imshow('video1',frameFlip)
+            #cv2.imshow('video1',frameFlip)
             print(y)
             if (y+const.DISTANCE_ERROR >midheight and y-const.DISTANCE_ERROR<midheight and detected):
                 print("Esta en frente")
@@ -90,7 +90,7 @@ twist = Twist()
 predifined=rospy.Publisher('/predefined',String,queue_size=1)
 
 
-cap = cv2.VideoCapture("/dev/video0")
+cap = cv2.VideoCapture("/dev/video1")
 
 blueLow = np.array([95,100,20], np.uint8)
 blueHigh = np.array([125,255,255], np.uint8)
@@ -99,7 +99,7 @@ greenLow = np.array([45,100,20], np.uint8)
 greenHigh = np.array([65,255,255], np.uint8)
 
 redLow1 = np.array([0,100,20], np.uint8)
-redHigh1 = np.array([5,255,255], np.uint8)
+redHigh1 = np.array([20,255,255], np.uint8)
 
 redLow2 = np.array([170,100,20], np.uint8)
 redHigh2 = np.array([179,255,255], np.uint8)
@@ -126,8 +126,10 @@ while not rospy.is_shutdown() and control:
         maskRed1= cv2.inRange(frameHSV,redLow1, redHigh1)
         maskReed2 = cv2.inRange(frameHSV,redLow2,redHigh2)
         maskRed = cv2.add(maskRed1,maskReed2)
-        a =draw(maskBlue,(255,0,0))
-        b = draw(maskGreen,(0,255,0))
+        a = False
+        b = False
+        #a =draw(maskBlue,(255,0,0))
+        #b = draw(maskGreen,(0,255,0))
         c = draw(maskRed,(0,0,255))
         frameFlip = cv2.flip(frame,1)
 
@@ -151,7 +153,7 @@ while not rospy.is_shutdown() and control:
             
         detected = a == True or b==True or c ==True
         
-        cv2.imshow('video',frameFlip)
+        #cv2.imshow('video',frameFlip)
 
         if (midpoint*2-x+const.ANGLE_ERROR >midpoint and midpoint*2-x-const.ANGLE_ERROR<midpoint and detected):
             twist.linear.x=0
