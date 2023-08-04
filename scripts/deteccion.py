@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 import rospy
+from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 import time
 import consts as const
@@ -65,12 +66,30 @@ def y_axis_center(rock):
             cmd_vel_pub.publish(twist)   
             time.sleep(.1)      
                    
+def cambiovel(pos,veces):
+    global twist,x,midpoint
+    if pos==-1 or pos==1:
+        if veces<=2:
+            twist.linear.x=0
+            twist.angular.z=veces*.08*pos
+        else:
+            print(abs(x-midpoint))
+            regla3=(abs(x - midpoint)-const.ANGLE_ERROR ) * 0.08 / (midpoint - const.ANGLE_ERROR ) + 0.08
+            print(regla3)
+            twist.linear.x=0
+            twist.angular.z=regla3*pos
     
+
+
 
 rospy.init_node("center_and_aproach",anonymous=True)
 cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1)
 twist = Twist()
-        
+
+
+predifined=rospy.Publisher('/predefined',String,queue_size=1)
+
+
 cap = cv2.VideoCapture("/dev/video0")
 
 blueLow = np.array([95,100,20], np.uint8)
@@ -96,7 +115,7 @@ control = True
 if(ret): 
     midpoint = frame.shape[1]/2
     midheight = frame.shape[2]/2
-
+posicion=2
 while not rospy.is_shutdown() and control:
     ret,frame = cap.read()
     if ret == True:
@@ -131,10 +150,11 @@ while not rospy.is_shutdown() and control:
             cont = True
             
         detected = a == True or b==True or c ==True
-
+        
         cv2.imshow('video',frameFlip)
 
         if (midpoint*2-x+const.ANGLE_ERROR >midpoint and midpoint*2-x-const.ANGLE_ERROR<midpoint and detected):
+            posicion=0
             twist.linear.x=0
             twist.angular.z=0
             cmd_vel_pub.publish(twist)
@@ -143,20 +163,41 @@ while not rospy.is_shutdown() and control:
             twist.angular.z=0
             time.sleep(1)
             cmd_vel_pub.publish(twist)
+            #predifined.publish("INTERMEDIATE")
             time.sleep(2)
             cv2.destroyWindow("video")
             control = False
             #y_axis_center(rock)
         elif (midpoint>(2*midpoint-x) -const.ANGLE_ERROR and detected):
+            if posicion != -1:
+                inicio=time.time()
+                segundos=0
+            else:
+                segundos=time.time()-inicio
+            posicion=-1
             print("Esta a la izquierda")
+            '''
             twist.linear.x=0.0
             twist.angular.z=-0.16
+            '''
+            cambiovel(posicion,segundos)
         elif ((2*midpoint-x) +const.ANGLE_ERROR >midpoint and detected):
+            if posicion != 1:
+                inicio=time.time()
+                segundos=0
+            else:
+                segundos=time.time()-inicio
+            posicion=1
             print("Esta a la derecha")
+            posicion=1
+            '''
             twist.linear.x=0
             twist.angular.z=0.16
+            '''
+            cambiovel(posicion,segundos)
         
         if(not detected):
+            posicion=2
             twist.linear.x=0
             twist.angular.z=0
 
