@@ -7,7 +7,7 @@ from geometry_msgs.msg import Twist
 import time
 import consts as const
 from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 
 class Center():
     def __init__(self):
@@ -17,6 +17,8 @@ class Center():
         self.twist = Twist()
         self.image_pub = rospy.Publisher("/detection_image_raw",Image,queue_size=10)
         self.image_pub_arm = rospy.Publisher("/detection_arm__image_raw",Image,queue_size=10)
+        self.image_pub_compressed = rospy.Publisher("/detection_image_compressed",CompressedImage,queue_size=10)
+        self.image_pub_arm_compressed = rospy.Publisher("/detection_arm__image_compressed",CompressedImage,queue_size=10)
         #Position Variables
         self.x = 0
         self.y = 0
@@ -83,7 +85,9 @@ class Center():
                 frameFlip = cv2.flip(self.frame,1)
                 #Creates an image message with the contours drawn by the draw function
                 img_msg = self.bridge.cv2_to_imgmsg(self.frame,"bgr8")
-
+                #img_msg_compressed = CompressedImage()
+                #img_msg_compressed.header ="Compressed"
+                #img_msg_compressed=self.bridge.cv2_to_compressed_imgmsg(self.frame)
                 #Checks if the rock has been continuously detected
                 if (b == True):
                     if (cont == True):
@@ -117,9 +121,9 @@ class Center():
                     print("Esta en frente")
                     self.twist.linear.x=.20
                     self.twist.angular.z=0
-                    time.sleep(1)
+                    #time.sleep(1)
                     self.cmd_vel_pub.publish(self.twist)
-                    time.sleep(2)
+                    #time.sleep(2)
                     center_rock = False #This should be True, currently for testing it is set to False. 
                 elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected):
                     print("Esta a la derecha")
@@ -165,8 +169,10 @@ class Center():
                     break
                 self.cmd_vel_pub.publish(self.twist)
                 self.image_pub.publish(img_msg)
+                #self.image_pub_compressed.publish(img_msg_compressed.data)
                 
-                time.sleep(.1)
+                time.sleep(.01)
+                #rospy.Rate(10).sleep()  
         cv2.destroyAllWindows()        
 if __name__=="__main__":
     center = Center()
