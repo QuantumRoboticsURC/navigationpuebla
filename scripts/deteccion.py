@@ -74,7 +74,7 @@ def cambiovel(pos,veces):
             twist.angular.z=veces*.08*pos
         else:
             print(abs(x-midpoint))
-            regla3=(abs(x - midpoint)-const.ANGLE_ERROR ) * 0.08 / (midpoint - const.ANGLE_ERROR ) + 0.08
+            regla3=(abs(x - midpoint)-const.ANGLE_ERROR ) * 0.1 / (midpoint - const.ANGLE_ERROR ) + 0.1
             print(regla3)
             twist.linear.x=0
             twist.angular.z=regla3*pos
@@ -154,20 +154,27 @@ while not rospy.is_shutdown() and control:
         cv2.imshow('video',frameFlip)
 
         if (midpoint*2-x+const.ANGLE_ERROR >midpoint and midpoint*2-x-const.ANGLE_ERROR<midpoint and detected):
-            posicion=0
             twist.linear.x=0
             twist.angular.z=0
             cmd_vel_pub.publish(twist)
-            print("Esta en frente")
-            twist.linear.x=.20
-            twist.angular.z=0
-            time.sleep(1)
-            cmd_vel_pub.publish(twist)
-            #predifined.publish("INTERMEDIATE")
-            time.sleep(2)
-            cv2.destroyWindow("video")
-            control = False
-            #y_axis_center(rock)
+            if(posicion != 0):
+                contador = 1
+                print(contador)
+            else:           
+                contador +=1
+                print(contador)
+            posicion=0
+            if(contador >= 10):
+                print("Esta en frente")
+                twist.linear.x=.20
+                twist.angular.z=0
+                time.sleep(1)
+                cmd_vel_pub.publish(twist)
+                #predifined.publish("INTERMEDIATE")
+                time.sleep(2)
+                cv2.destroyWindow("video")
+                control = False
+                #y_axis_center(rock)
         elif (midpoint>(2*midpoint-x) -const.ANGLE_ERROR and detected):
             if posicion != -1:
                 inicio=time.time()
