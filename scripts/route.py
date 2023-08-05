@@ -6,6 +6,7 @@ from navigationpuebla.msg import odom
 import time
 import consts as const
 import math
+
 class Route():
     def __init__(self):
         rospy.init_node("Route",anonymous=True)
@@ -17,6 +18,9 @@ class Route():
         self.x=0
         self.y=0
         self.theta=0
+        self.velocity=0.33
+        self.angular_velocity = 0.4
+        self.coordinates = []
     
     def callback(self,data):
         self.x=data.x
@@ -24,14 +28,7 @@ class Route():
         self.theta=data.theta
 
     def routine(self):
-        current_time = rospy.get_time()
-        if((current_time-self.start_time)%8!=0):
-            self.twist.linear.x=0.33
-        else:
-            self.twist.angular.z=0.5
-        self.pub_cmd.publish(self.twist)
-        self.twist.linear.x=0.0
-        self.twist.angular.z=0.0
+        self.coordinates = [(1,1),(7,1),(7,7),(7,1)]
     
     def go_to(self,x1,y1):
         cuadrante = 0
@@ -52,11 +49,25 @@ class Route():
             elif(self.y>y1):
                 cuadrante =3
                 angle = math.pi+angle
-        
-                
 
+        if(self.theta>angle):
+            self.angular_velocity = -self.angular_velocity
+            while(self.theta>angle):
+                self.twist.linear.x=0
+                self.twist.angular.z=self.angular_velocity
+                self.pub_cmd(self.twist)
+        else:
+            while(self.theta<angle):
+                self.twist.linear.x=0
+                self.twist.angular.z=self.angular_velocity
+                self.pub_cmd(self.twist)
 
+        target_time = distance/self.velocity+rospy.get_time()
 
+        while(target_time>rospy.get_time()):
+            self.twist.linear.x=self.velocity/(target_time-rospy.get_time())
+            self.twist.angular.z=0
+            self.pub_cmd(self.twist)
 
     
     def main(self):
@@ -64,6 +75,8 @@ class Route():
             self.routine()
             self.rate.sleep()
     
+
+
 if __name__=="__main__":
     route = Route()
     route.main()
