@@ -3,7 +3,7 @@
 import cv2
 import numpy as np
 import rospy
-from std_msgs.msg import String
+from std_msgs.msg import String,Float64,Int32
 from geometry_msgs.msg import Twist
 import time
 import consts as const
@@ -46,7 +46,7 @@ def y_axis_center(rock):
             c = draw(maskRed,(0,0,255))
             frameFlip = cv2.flip(frame,1) 
             detected = a == True or b==True or c ==True
-            #cv2.imshow('video1',frameFlip)
+            cv2.imshow('video1',frameFlip)
             print(y)
             if (y+const.DISTANCE_ERROR >midheight and y-const.DISTANCE_ERROR<midheight and detected):
                 print("Esta en frente")
@@ -90,7 +90,13 @@ twist = Twist()
 predifined=rospy.Publisher('/predefined',String,queue_size=1)
 
 
-cap = cv2.VideoCapture("/dev/video1")
+joint1=rospy.Publisher("arm_teleop/joint1",Float64,queue_size=1)
+joint2=rospy.Publisher("arm_teleop/joint2",Float64,queue_size=1)
+joint3=rospy.Publisher("arm_teleop/joint3",Float64,queue_size=1)
+joint4=rospy.Publisher("arm_teleop/joint4",Float64,queue_size=1)
+cam=rospy.Publisher("arm_teleop/cam",Int32,queue_size=1)
+
+cap = cv2.VideoCapture("/dev/video0")
 
 blueLow = np.array([95,100,20], np.uint8)
 blueHigh = np.array([125,255,255], np.uint8)
@@ -99,7 +105,7 @@ greenLow = np.array([45,100,20], np.uint8)
 greenHigh = np.array([65,255,255], np.uint8)
 
 redLow1 = np.array([0,100,20], np.uint8)
-redHigh1 = np.array([20,255,255], np.uint8)
+redHigh1 = np.array([5,255,255], np.uint8)
 
 redLow2 = np.array([170,100,20], np.uint8)
 redHigh2 = np.array([179,255,255], np.uint8)
@@ -116,6 +122,13 @@ if(ret):
     midpoint = frame.shape[1]/2
     midheight = frame.shape[2]/2
 posicion=2
+joint1.publish(0)
+joint2.publish(160.19)
+joint3.publish(-163.3)
+joint4.publish(3.11)
+cam.publish(50)
+
+time.sleep(10)
 while not rospy.is_shutdown() and control:
     ret,frame = cap.read()
     if ret == True:
@@ -153,7 +166,7 @@ while not rospy.is_shutdown() and control:
             
         detected = a == True or b==True or c ==True
         
-        #cv2.imshow('video',frameFlip)
+        cv2.imshow('video',frameFlip)
 
         if (midpoint*2-x+const.ANGLE_ERROR >midpoint and midpoint*2-x-const.ANGLE_ERROR<midpoint and detected):
             twist.linear.x=0
@@ -168,12 +181,34 @@ while not rospy.is_shutdown() and control:
             posicion=0
             if(contador >= 10):
                 print("Esta en frente")
-                twist.linear.x=.20
+                twist.linear.x=.16
                 twist.angular.z=0
                 time.sleep(1)
                 cmd_vel_pub.publish(twist)
+                joint1.publish(0)
+                joint2.publish(147.68)
+                joint3.publish(-115.36)
+                joint4.publish(-32.32)
+
+                time.sleep(5)
+                
+                joint1.publish(0)
+                joint2.publish(147.68)
+                joint3.publish(-115.36)
+                joint4.publish(-102.32)
+                cam.publish(10)
                 #predifined.publish("INTERMEDIATE")
-                time.sleep(2)
+                time.sleep(10)
+                joint1.publish(0)
+                joint2.publish(147.68)
+                joint3.publish(-115.36)
+                joint4.publish(-32.32)
+                time.sleep(5)
+                joint1.publish(0)
+                joint2.publish(160.19)
+                joint3.publish(-163.3)
+                joint4.publish(3.11)
+                cam.publish(50)
                 cv2.destroyWindow("video")
                 control = False
                 #y_axis_center(rock)
