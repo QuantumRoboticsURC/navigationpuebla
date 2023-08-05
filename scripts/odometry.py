@@ -6,6 +6,7 @@ from navigationpuebla.msg import odom
 import time
 import consts as const
 import math
+
 class Odometry():
     def __init__(self):
         rospy.init_node("Odometry",anonymous=True)
@@ -32,11 +33,16 @@ class Odometry():
         self.y += self.vy*(dT)
         self.angle += self.vTheta*(dT)
         self.previous_time = rospy.get_time()
-        if(self.angle > 2*math.pi):
+
+        if(abs(self.angle) > (2*math.pi)):
             self.angle = self.angle%2*math.pi
 
         print("Current position:", self.x,",",self.y," at an angle of: ",self.angle)
-        self.pub(float(self.x),float(self.y),float(self.angle))
+        o = odom()
+        o.x= float(self.x)
+        o.y = float(self.y)
+        o.theta = float(self.angle)
+        self.pub(o)
 
     def main(self):
         while not rospy.is_shutdown():
