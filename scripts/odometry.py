@@ -16,8 +16,9 @@ class Odometry():
         self.angle = 0.0
         self.x = 0.0
         self.y = 0.0
-        self.listener = rospy.Subscriber("/cmd_vel",Twist,self.callback)
-        self.pub = rospy.Publisher("/odom",odom,queue_size=10)
+        self.odom = odom()
+        self.listener_cmd_vel = rospy.Subscriber("/cmd_vel",Twist,self.callback)
+        self.pub_odom = rospy.Publisher("/odom",odom,queue_size=10)
         self.previous_time = rospy.get_time()
         self.rate = rospy.Rate(30)
 
@@ -38,11 +39,10 @@ class Odometry():
             self.angle = self.angle%2*math.pi
 
         print("Current position:", self.x,",",self.y," at an angle of: ",self.angle)
-        o = odom()
-        o.x= float(self.x)
-        o.y = float(self.y)
-        o.theta = float(self.angle)
-        self.pub(o)
+        self.odom.x= float(self.x)
+        self.odom.y = float(self.y)
+        self.odom.theta = float(self.angle)
+        self.pub_odom.publish(self.odom)
 
     def main(self):
         while not rospy.is_shutdown():
