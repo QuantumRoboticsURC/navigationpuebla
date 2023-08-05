@@ -2,9 +2,10 @@
 import numpy as np
 import rospy
 from geometry_msgs.msg import Twist
+from navigationpuebla.msg import odom
 import time
 import consts as const
-
+import math
 class Odometry():
     def __init__(self):
         rospy.init_node("Odometry",anonymous=True)
@@ -15,6 +16,7 @@ class Odometry():
         self.x = 0.0
         self.y = 0.0
         self.listener = rospy.Subscriber("/cmd_vel",Twist,self.callback)
+        self.pub = rospy.Publisher("/odom",odom,queue_size=10)
         self.previous_time = rospy.get_time()
         self.rate = rospy.Rate(30)
 
@@ -30,8 +32,11 @@ class Odometry():
         self.y += self.vy*(dT)
         self.angle += self.vTheta*(dT)
         self.previous_time = rospy.get_time()
+        if(self.angle > 2*math.pi):
+            self.angle = self.angle%2*math.pi
+
         print("Current position:", self.x,",",self.y," at an angle of: ",self.angle)
-  
+        self.pub(float(self.x),float(self.y),float(self.angle))
 
     def main(self):
         while not rospy.is_shutdown():
