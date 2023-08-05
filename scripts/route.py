@@ -37,9 +37,11 @@ class Route():
         cuadrante = 0
         distance = np.sqrt(pow(x1-self.x,2)+pow(self.y-y1,2))
         angle = np.arctan(abs(self.x-x1),abs(self.y-y1))
+        
         if(x1>self.x):
             if(y1>self.y):
                 cuadrante = 1
+                angle = angle
             elif (self.y>y1):
                 cuadrante = 4
                 angle = 2*math.pi-angle

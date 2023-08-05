@@ -37,6 +37,9 @@ class Odometry():
 
         if(abs(self.angle) > (2*math.pi)):
             self.angle = self.angle%2*math.pi
+        
+        if(self.angle<0):
+            self.angle = 2*math.pi+self.angle
 
         print("Current position:", self.x,",",self.y," at an angle of: ",self.angle)
         self.odom.x= float(self.x)
