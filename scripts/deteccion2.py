@@ -47,6 +47,8 @@ class Center():
             self.midpoint = frame.shape[1]/2
         if(ret1):
             self.midheight = frame1.shape[2]/2
+        self.pos=2
+        self.veces=0
 
     def draw(self,mask,color,frame):
         _, contornos, _ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -62,6 +64,19 @@ class Center():
                 cv2.drawContours(frame, [nuevoContorno],0,color,3)
                 return True
         return False
+    
+    def cambiovel(self):
+        
+        if self.pos==-1 or self.pos==1:
+            if self.veces<=2:
+                self.twist.linear.x=0
+                self.twist.angular.z=self.veces*.08*self.pos
+            else:
+                regla3=(abs(self.x - self.midpoint)-const.ANGLE_ERROR ) * 0.08 / (self.midpoint - const.ANGLE_ERROR ) + 0.08
+                print(regla3)
+                self.twist.linear.x=0
+                self.twist.angular.z=regla3*self.pos
+    
     
     def main(self):
         self.get_center()
@@ -115,6 +130,7 @@ class Center():
                 #Code that Checks if the rock is on the right or on the left. Or if it has already been centered 
 
                 if (self.midpoint*2-self.x+const.ANGLE_ERROR >self.midpoint and self.midpoint*2-self.x-const.ANGLE_ERROR<self.midpoint and detected):
+                    self.pos=1
                     self.twist.linear.x=0
                     self.twist.angular.z=0
                     self.cmd_vel_pub.publish(self.twist)
@@ -126,15 +142,35 @@ class Center():
                     #time.sleep(2)
                     center_rock = False #This should be True, currently for testing it is set to False. 
                 elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected):
-                    print("Esta a la derecha")
-                    self.twist.linear.x=0.0
-                    self.twist.angular.z=0.16
-                elif ((2*self.midpoint-self.x) +const.ANGLE_ERROR >self.midpoint and detected):
+                    if self.pos != 1:
+                        inicio=time.time()
+                        self.veces=0
+                    else:
+                        self.veces=time.time()-inicio
+                    self.pos=1
                     print("Esta a la izquierda")
-                    self.twist.linear.x=0
-                    self.twist.angular.z=-0.16
-                #This part of the code has to be reviewd once the search routine is determined
+                    self.cambiovel()
+                    '''
+                    twist.linear.x=0.0
+                    twist.angular.z=-0.16
+                    '''
+                elif ((2*self.midpoint-self.x) +const.ANGLE_ERROR >self.midpoint and detected):
+                    if self.pos != -1:
+                        inicio=time.time()
+                        self.veces=0
+                    else:
+                        self.veces=time.time()-inicio
+                    self.pos=-1
+                    print("Esta a la derecha")
+                    self.cambiovel()
+                    '''
+                    twist.linear.x=0.0
+                    twist.angular.z=-0.16
+                    '''
+                    
+               #This part of the code has to be reviewd once the search routine is determined
                 if(not detected):
+                    self.pos=2
                     self.twist.linear.x=0
                     self.twist.angular.z=0
                 #If the rock has already been centered with the first camera, a second centering process starts with the arm camera

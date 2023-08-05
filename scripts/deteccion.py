@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 import rospy
+from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 import time
 import consts as const
@@ -45,7 +46,7 @@ def y_axis_center(rock):
             c = draw(maskRed,(0,0,255))
             frameFlip = cv2.flip(frame,1) 
             detected = a == True or b==True or c ==True
-            cv2.imshow('video1',frameFlip)
+            #cv2.imshow('video1',frameFlip)
             print(y)
             if (y+const.DISTANCE_ERROR >midheight and y-const.DISTANCE_ERROR<midheight and detected):
                 print("Esta en frente")
@@ -65,13 +66,31 @@ def y_axis_center(rock):
             cmd_vel_pub.publish(twist)   
             time.sleep(.1)      
                    
+def cambiovel(pos,veces):
+    global twist,x,midpoint
+    if pos==-1 or pos==1:
+        if veces<=2:
+            twist.linear.x=0
+            twist.angular.z=veces*.08*pos
+        else:
+            print(abs(x-midpoint))
+            regla3=(abs(x - midpoint)-const.ANGLE_ERROR ) * 0.1 / (midpoint - const.ANGLE_ERROR ) + 0.1
+            print(regla3)
+            twist.linear.x=0
+            twist.angular.z=regla3*pos
     
+
+
 
 rospy.init_node("center_and_aproach",anonymous=True)
 cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1)
 twist = Twist()
-        
-cap = cv2.VideoCapture("/dev/video0")
+
+
+predifined=rospy.Publisher('/predefined',String,queue_size=1)
+
+
+cap = cv2.VideoCapture("/dev/video1")
 
 blueLow = np.array([95,100,20], np.uint8)
 blueHigh = np.array([125,255,255], np.uint8)
@@ -80,7 +99,7 @@ greenLow = np.array([45,100,20], np.uint8)
 greenHigh = np.array([65,255,255], np.uint8)
 
 redLow1 = np.array([0,100,20], np.uint8)
-redHigh1 = np.array([5,255,255], np.uint8)
+redHigh1 = np.array([20,255,255], np.uint8)
 
 redLow2 = np.array([170,100,20], np.uint8)
 redHigh2 = np.array([179,255,255], np.uint8)
@@ -96,7 +115,7 @@ control = True
 if(ret): 
     midpoint = frame.shape[1]/2
     midheight = frame.shape[2]/2
-
+posicion=2
 while not rospy.is_shutdown() and control:
     ret,frame = cap.read()
     if ret == True:
@@ -107,8 +126,10 @@ while not rospy.is_shutdown() and control:
         maskRed1= cv2.inRange(frameHSV,redLow1, redHigh1)
         maskReed2 = cv2.inRange(frameHSV,redLow2,redHigh2)
         maskRed = cv2.add(maskRed1,maskReed2)
-        a =draw(maskBlue,(255,0,0))
-        b = draw(maskGreen,(0,255,0))
+        a = False
+        b = False
+        #a =draw(maskBlue,(255,0,0))
+        #b = draw(maskGreen,(0,255,0))
         c = draw(maskRed,(0,0,255))
         frameFlip = cv2.flip(frame,1)
 
@@ -131,32 +152,61 @@ while not rospy.is_shutdown() and control:
             cont = True
             
         detected = a == True or b==True or c ==True
-
-        cv2.imshow('video',frameFlip)
+        
+        #cv2.imshow('video',frameFlip)
 
         if (midpoint*2-x+const.ANGLE_ERROR >midpoint and midpoint*2-x-const.ANGLE_ERROR<midpoint and detected):
             twist.linear.x=0
             twist.angular.z=0
             cmd_vel_pub.publish(twist)
-            print("Esta en frente")
-            twist.linear.x=.20
-            twist.angular.z=0
-            time.sleep(1)
-            cmd_vel_pub.publish(twist)
-            time.sleep(2)
-            cv2.destroyWindow("video")
-            control = False
-            #y_axis_center(rock)
+            if(posicion != 0):
+                contador = 1
+                print(contador)
+            else:           
+                contador +=1
+                print(contador)
+            posicion=0
+            if(contador >= 10):
+                print("Esta en frente")
+                twist.linear.x=.20
+                twist.angular.z=0
+                time.sleep(1)
+                cmd_vel_pub.publish(twist)
+                #predifined.publish("INTERMEDIATE")
+                time.sleep(2)
+                cv2.destroyWindow("video")
+                control = False
+                #y_axis_center(rock)
         elif (midpoint>(2*midpoint-x) -const.ANGLE_ERROR and detected):
+            if posicion != -1:
+                inicio=time.time()
+                segundos=0
+            else:
+                segundos=time.time()-inicio
+            posicion=-1
             print("Esta a la izquierda")
+            '''
             twist.linear.x=0.0
             twist.angular.z=-0.16
+            '''
+            cambiovel(posicion,segundos)
         elif ((2*midpoint-x) +const.ANGLE_ERROR >midpoint and detected):
+            if posicion != 1:
+                inicio=time.time()
+                segundos=0
+            else:
+                segundos=time.time()-inicio
+            posicion=1
             print("Esta a la derecha")
+            posicion=1
+            '''
             twist.linear.x=0
             twist.angular.z=0.16
+            '''
+            cambiovel(posicion,segundos)
         
         if(not detected):
+            posicion=2
             twist.linear.x=0
             twist.angular.z=0
 
