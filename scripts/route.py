@@ -3,7 +3,7 @@ import numpy as np
 import rospy
 from geometry_msgs.msg import Twist
 from std_msgs.msg import String,Bool
-from navigationpuebla.msg import odom
+from navigationpuebla.msg import odom,target
 import time
 import consts as const
 import math
@@ -22,13 +22,14 @@ class Route():
         self.theta=0.0
         self.velocity=0.33
         self.angular_velocity = 0.4
-        self.coordinates = []
+        self.coordinates = [(1,1),(7,1),(7,7),(1,7)]
         self.arrived = False
     
     def callback(self,data):
         self.x=data.x
         self.y=data.y
         self.theta=data.theta
+
 
     def routine(self):
         self.coordinates = [(1,1),(7,1),(7,7),(7,1)]
@@ -38,38 +39,55 @@ class Route():
         distance = np.sqrt(pow(x1-self.x,2)+pow(self.y-y1,2))
         angle = np.arctan(abs(self.y-y1)/(abs(self.x-x1)))
 
-        if(x1>self.x):
-            if(y1>self.y):
+        if(x1-self.x>0):
+            if(y1-self.y)>0:
                 cuadrante = 1
                 angle = angle
-            elif (self.y>y1):
+            else:
                 cuadrante = 4
                 angle = 2*math.pi-angle
-        elif(self.x>x1):
-            if(y1>self.y):
+        else:
+            if(y1-self.y>0):
                 cuadrante = 2
                 angle = math.pi-angle
-            elif(self.y>y1):
+            else:
                 cuadrante =3
                 angle = math.pi+angle
 
         if(self.theta>angle):
-            print("Moving from angle ",self.theta, " to ",angle)
+            print("-Moving from angle ",self.theta, " to ",angle)
             self.angular_velocity = -self.angular_velocity
             while(self.theta>angle):
-                self.twist.linear.x=0
-                self.twist.angular.z=self.angular_velocity
-                self.pub_cmd.publish(self.twist)
+                if(self.theta+self.angular_velocity/30<angle):
+                    self.twist.linear.x=0.0
+                    self.twist.angular.z=0
+                    self.pub_cmd.publish(self.twist)
+                    break
+                else:
+                    self.twist.linear.x=0
+                    self.twist.angular.z=self.angular_velocity
+                    self.pub_cmd.publish(self.twist)
         else:
-            print("Moving from ",self.theta, " to ",angle)
+            print("+Moving from angle",self.theta, " to ",angle)
             while(self.theta<angle):
-                self.twist.linear.x=0
-                self.twist.angular.z=self.angular_velocity
-                self.pub_cmd.publish(self.twist)
-
+                if(self.theta+self.twist.angular.z/30>angle):
+                    self.twist.linear.x=0
+                    self.twist.angular.z=0
+                    self.pub_cmd.publish(self.twist)
+                    break
+                else:
+                    self.twist.linear.x=0
+                    self.twist.angular.z=self.angular_velocity
+                    self.pub_cmd.publish(self.twist)
+        
+        if(self.angular_velocity<0):
+            self.angular_velocity=-self.angular_velocity
+        
         target_time = distance/self.velocity+rospy.get_time()
+
         print("Coordinates: ",self.x," ,",self.y)
         print("Target coordinates: ",x1," ,",y1)
+
         while(target_time>rospy.get_time()):
             self.twist.linear.x=self.velocity
             self.twist.angular.z=0
@@ -86,7 +104,9 @@ class Route():
 
     def main(self):
         while not rospy.is_shutdown():
-            self.go_to(7,3)
+            for coordinates in self.coordinates:
+                print("Going to coordinate: ",self.coordinates.index(coordinates))
+                self.go_to(coordinates[0],coordinates[1])
             break
             self.rate.sleep()
     
