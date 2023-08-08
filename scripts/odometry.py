@@ -41,11 +41,12 @@ class Odometry():
         if(self.angle<0):
             self.angle = 2*math.pi+self.angle
 
-        print("Current position:", self.x,",",self.y," at an angle of: ",self.angle)
         self.odom.x= float(self.x)
         self.odom.y = float(self.y)
         self.odom.theta = float(self.angle)
         self.pub_odom.publish(self.odom)
+
+        print("Current position:", self.x,",",self.y," at an angle of: ",self.angle)
 
     def main(self):
         while not rospy.is_shutdown():
