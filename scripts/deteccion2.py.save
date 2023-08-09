@@ -26,9 +26,9 @@ class Center():
         self.midheight = 0
         #Camera Variables
         print("cam1") 
-        self.cam_1 = cv2.VideoCapture("/dev/video0",cv2.CAP_GSTREAMER)
+        self.cam_1 = cv2.VideoCapture(0)
 	print("cam2")
-        self.cam_2 = cv2.VideoCapture("/dev/video1",cv2.CAP_GSTREAMER)
+        self.cam_2 = cv2.VideoCapture("/dev/video1")
         #Colors
         self.blueLow = np.array([95,100,20], np.uint8)
         self.blueHigh = np.array([125,255,255], np.uint8)
@@ -86,13 +86,14 @@ class Center():
         cont = True
         while not rospy.is_shutdown():
             ret,self.frame = self.cam_1.read()
+            ret1,self.frame1 = self.cam_2.read()
             if ret:
                 #reads frames
                 frameHSV = cv2.cvtColor(self.frame,cv2.COLOR_BGR2HSV)
                 maskBlue = cv2.inRange(frameHSV,self.blueLow,self.blueHigh)
                 maskGreen = cv2.inRange(frameHSV,self.greenLow,self.greenHigh)
                 maskRed1= cv2.inRange(frameHSV,self.redLow1, self.redHigh1)
-                maskReed2 = cv2.inRange(frameHSV,self.redLow2,self.redHigh2)
+                masReed2 = cv2.inRange(frameHSV,self.redLow2,self.redHigh2)
                 maskRed = cv2.add(maskRed1,maskReed2)
                 #Checks if a rock has been detected 
                 a =self.draw(maskBlue,(255,0,0),self.frame)
@@ -176,7 +177,7 @@ class Center():
                     self.twist.angular.z=0
                 #If the rock has already been centered with the first camera, a second centering process starts with the arm camera
                 if center_rock:
-		    ret1,self.frame1 = self.cam_2.read()
+		    
                     if ret1:
                         frameFlip = cv2.flip(self.frame1,1)
                         a =self.draw(maskBlue,(255,0,0),self.frame1)
