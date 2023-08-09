@@ -197,7 +197,6 @@ while not rospy.is_shutdown() and control:
                 joint3.publish(-115.36)
                 joint4.publish(-102.32)
                 cam.publish(10)
-                #predifined.publish("INTERMEDIATE")
                 time.sleep(10)
                 joint1.publish(0)
                 joint2.publish(147.68)
