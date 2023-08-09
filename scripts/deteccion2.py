@@ -26,9 +26,9 @@ class Center():
         self.midheight = 0
         #Camera Variables
         print("cam1") 
-        self.cam_1 = cv2.VideoCapture("/dev/video0",cv2.CAP_GSTREAMER)
-	print("cam2")
-        self.cam_2 = cv2.VideoCapture("/dev/video1",cv2.CAP_GSTREAMER)
+        self.cam_1 = cv2.VideoCapture("/dev/video1")
+        print("cam2")
+        self.cam_2 = cv2.VideoCapture("/dev/video1")
         #Colors
         self.blueLow = np.array([95,100,20], np.uint8)
         self.blueHigh = np.array([125,255,255], np.uint8)
@@ -42,6 +42,8 @@ class Center():
         self.rock=""
         self.rocks = []
         self.bridge = CvBridge()
+        self.rate = rospy.Rate(10)
+
     def get_center(self):
         ret,frame = self.cam_1.read()
         ret1,frame1 = self.cam_2.read()
@@ -176,7 +178,7 @@ class Center():
                     self.twist.angular.z=0
                 #If the rock has already been centered with the first camera, a second centering process starts with the arm camera
                 if center_rock:
-		    ret1,self.frame1 = self.cam_2.read()
+                    ret1,self.frame1 = self.cam_2.read()
                     if ret1:
                         frameFlip = cv2.flip(self.frame1,1)
                         a =self.draw(maskBlue,(255,0,0),self.frame1)
@@ -203,14 +205,12 @@ class Center():
                             self.twist.linear.x=-0.08
                             self.twist.angular.z=0
 
-                if cv2.waitKey(1) & 0xFF ==ord('s'):
-                    break
                 self.cmd_vel_pub.publish(self.twist)
                 self.image_pub.publish(img_msg)
                 #self.image_pub_compressed.publish(img_msg_compressed.data)
                 
-                time.sleep(.01)
-                #rospy.Rate(10).sleep()  
+            self.rate.sleep()
+            #rospy.Rate(10).sleep()  
         cv2.destroyAllWindows()        
 if __name__=="__main__":
     center = Center()

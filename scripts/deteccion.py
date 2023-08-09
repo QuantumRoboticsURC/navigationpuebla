@@ -96,7 +96,7 @@ joint3=rospy.Publisher("arm_teleop/joint3",Float64,queue_size=1)
 joint4=rospy.Publisher("arm_teleop/joint4",Float64,queue_size=1)
 cam=rospy.Publisher("arm_teleop/cam",Int32,queue_size=1)
 
-cap = cv2.VideoCapture("/dev/video1")
+cap = cv2.VideoCapture("/dev/video0")
 
 blueLow = np.array([95,100,20], np.uint8)
 blueHigh = np.array([125,255,255], np.uint8)
