@@ -40,12 +40,12 @@ class Imu_Sim():
         self.theta=data.theta
 
     def calculate(self,x,y):
-        self.diff_x = (-2/5)*(x-4)
-        self.diff_y = (-2/5)*(y-4)
+        self.diff_x = (-2.0/5.0)*(x-4)
+        self.diff_y = (-2.0/5.0)*(y-4)
 
         self.pitch= np.arctan(self.diff_x)
         self.roll= np.arctan(self.diff_y)
-        self.yaw = 0
+        self.yaw = 0.0
 
         self.r = Rotation.from_euler(self.roll,self.pitch,self.yaw)
 
