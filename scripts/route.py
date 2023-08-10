@@ -17,8 +17,8 @@ class Route():
         self.listener_odom = rospy.Subscriber("/odometry",Pose2D,self.callback)
         self.start_time = rospy.get_time()
         self.rate= rospy.Rate(1)
-        self.x=0.0
-        self.y=0.0
+        self.x=1.0
+        self.y=1.0
         self.theta=0.0
         self.velocity=0.33
         self.angular_velocity = 0.4
@@ -32,7 +32,7 @@ class Route():
 
 
     def routine(self):
-        self.coordinates = [(1,1),(7,1),(7,7),(7,1)]
+        self.coordinates = [(self.x,self.y),(1,7),(2,7),(2,1),(3,1),(3,7),(4,7),(4,1),(5,1),(5,7),(6,7),(6,1),(7,1),(7,7)]
     
     def go_to(self,x1,y1):
         cuadrante = 0
@@ -103,6 +103,7 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
+        self.routine()
         while not rospy.is_shutdown():
             for coordinates in self.coordinates:
                 print("Going to coordinate: ",self.coordinates.index(coordinates))
