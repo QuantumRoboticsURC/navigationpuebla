@@ -3,6 +3,7 @@ import numpy as np
 import rospy
 from geometry_msgs.msg import Twist
 from navigationpuebla.msg import odom
+from geometry_msgs.msg import Pose2D
 import time
 import consts as const
 import math
@@ -17,8 +18,10 @@ class Odometry():
         self.x = 0.0
         self.y = 0.0
         self.odom = odom()
+        self.odometry = Pose2D()
         self.listener_cmd_vel = rospy.Subscriber("/cmd_vel",Twist,self.callback)
         self.pub_odom = rospy.Publisher("/odom",odom,queue_size=10)
+        self.pub_odometry = rospy.Publisher("/odometry",Pose2D,queue_size=10)
         self.previous_time = rospy.get_time()
         self.rate = rospy.Rate(30)
 
@@ -45,6 +48,11 @@ class Odometry():
         self.odom.y = float(self.y)
         self.odom.theta = float(self.angle)
         self.pub_odom.publish(self.odom)
+
+        self.odometry.x = float(self.x)
+        self.odometry.y=float(self.y)
+        self.odometry.theta=float(self.angle)
+        self.pub_odometry.publish(self.odometry)
 
         print("Current position:", self.x,",",self.y," at an angle of: ",self.angle)
 
