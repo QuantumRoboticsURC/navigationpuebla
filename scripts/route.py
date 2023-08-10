@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 import rospy
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Pose2D
 from std_msgs.msg import String,Bool
 from navigationpuebla.msg import odom,target
 import time
@@ -14,7 +14,7 @@ class Route():
         self.twist = Twist()
         self.pub_cmd = rospy.Publisher("/cmd_vel",Twist,queue_size=10)
         self.pub_go_to = rospy.Publisher("/go_to",Bool,queue_size=10)
-        self.listener_odom = rospy.Subscriber("/odom",odom,self.callback)
+        self.listener_odom = rospy.Subscriber("/odometry",Pose2D,self.callback)
         self.start_time = rospy.get_time()
         self.rate= rospy.Rate(1)
         self.x=0.0
