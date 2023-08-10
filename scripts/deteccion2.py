@@ -200,7 +200,7 @@ class Center():
                             print("Esta abajo")
                             self.twist.linear.x=0.08
                             self.twist.angular.z=0
-                        elif (y-const.DISTANCE_ERROR <self.midheight and detected):
+                        elif (self.y-const.DISTANCE_ERROR <self.midheight and detected):
                             print("Esta arriba")
                             self.twist.linear.x=-0.08
                             self.twist.angular.z=0
