@@ -26,9 +26,9 @@ class Center():
         self.midheight = 0
         #Camera Variables
         print("cam1") 
-        self.cam_1 = cv2.VideoCapture("/dev/video1")
+        self.cam_1 = cv2.VideoCapture("/dev/CAMERA_ARM_LAB")
         print("cam2")
-        self.cam_2 = cv2.VideoCapture("/dev/video1")
+        self.cam_2 = cv2.VideoCapture("/dev/CAMERA_ARM")
         #Colors
         self.blueLow = np.array([95,100,20], np.uint8)
         self.blueHigh = np.array([125,255,255], np.uint8)
@@ -55,7 +55,7 @@ class Center():
         self.veces=0
 
     def draw(self,mask,color,frame):
-        _, contornos, _ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contornos, _ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for c in contornos:
             area = cv2.contourArea(c)
             if area > 3000:

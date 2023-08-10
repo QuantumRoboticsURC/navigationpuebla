@@ -9,7 +9,7 @@ from std_msgs.msg import Header
 class ImagePublisher():
     def __init__(self):
         rospy.init_node("image_publisher")
-        self.cap = cv2.VideoCapture("/dev/video2")
+        self.cap = cv2.VideoCapture("/dev/CAMERA_ARM_LAB")
         self.img_1_pub = rospy.Publisher("/image_raw", Image, queue_size=1)
         self.rate = rospy.Rate(10)
         self.image_msg = Image()
