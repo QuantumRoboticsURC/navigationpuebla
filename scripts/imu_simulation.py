@@ -5,6 +5,8 @@ import time
 import consts as const
 from geometry_msgs.msg import Twist, Pose2D
 from sensor_msgs.msg import Imu
+from scipy.spatial.transform import Rotation
+
 
 
 
@@ -21,7 +23,7 @@ class Imu_Sim():
         self.theta= None
         self.diff_x = None
         self.diff_y = None
-
+        self.r = None
         self.pitch=None
         self.roll=None
         self.yaw = 0.0
@@ -44,16 +46,24 @@ class Imu_Sim():
         self.pitch= np.arctan(self.diff_x)
         self.roll= np.arctan(self.diff_y)
         self.yaw = 0
-        
-        self.qx = np.sin(self.roll/2.0) * np.cos(self.pitch/2.0) * np.cos(self.yaw/2.0) - np.cos(self.roll/2.0) * np.sin(self.pitch/2.0) * np.sin(self.yaw/2.0)
-        self.qy = np.cos(self.roll/2.0) * np.sin(self.pitch/2.0) * np.cos(self.yaw/2.0) + np.sin(self.roll/2.0) * np.cos(self.pitch/2.0) * np.sin(self.yaw/2.0)
-        self.qz = np.cos(self.roll/2.0) * np.cos(self.pitch/2.0) * np.sin(self.yaw/2.0) - np.sin(self.roll/2.0) * np.sin(self.pitch/2.0) * np.cos(self.yaw/2.0)
-        self.qw = np.cos(self.roll/2.0) * np.cos(self.pitch/2.0) * np.cos(self.yaw/2.0) + np.sin(self.roll/2.0) * np.sin(self.pitch/2.0) * np.sin(self.yaw/2.0)
 
-        self.imu_msg.orientation.x = self.qx
-        self.imu_msg.orientation.y = self.qy
-        self.imu_msg.orientation.z = self.qz
-        self.imu_msg.orientation.w = self.qw
+        self.r = Rotation.from_euler(self.roll,self.pitch,self.yaw)
+
+        
+        #self.qx = np.sin(self.roll/2.0) * np.cos(self.pitch/2.0) * np.cos(self.yaw/2.0) - np.cos(self.roll/2.0) * np.sin(self.pitch/2.0) * np.sin(self.yaw/2.0)
+        #self.qy = np.cos(self.roll/2.0) * np.sin(self.pitch/2.0) * np.cos(self.yaw/2.0) + np.sin(self.roll/2.0) * np.cos(self.pitch/2.0) * np.sin(self.yaw/2.0)
+        #self.qz = np.cos(self.roll/2.0) * np.cos(self.pitch/2.0) * np.sin(self.yaw/2.0) - np.sin(self.roll/2.0) * np.sin(self.pitch/2.0) * np.cos(self.yaw/2.0)
+        #self.qw = np.cos(self.roll/2.0) * np.cos(self.pitch/2.0) * np.cos(self.yaw/2.0) + np.sin(self.roll/2.0) * np.sin(self.pitch/2.0) * np.sin(self.yaw/2.0)
+
+        #self.imu_msg.orientation.x = self.qx
+        #self.imu_msg.orientation.y = self.qy
+        #self.imu_msg.orientation.z = self.qz
+        #self.imu_msg.orientation.w = self.qw
+
+        self.imu_msg.orientation.x = self.r[0]
+        self.imu_msg.orientation.y = self.r[1]
+        self.imu_msg.orientation.z = self.r[2]
+        self.imu_msg.orientation.w = self.r[3]
 
         self.pub_imu.publish(self.imu_msg)
 
