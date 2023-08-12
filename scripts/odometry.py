@@ -19,13 +19,14 @@ class Odometry():
         self.y = 0.0
         self.odom = odom()
         self.odometry = Pose2D()
-        self.listener_cmd_vel = rospy.Subscriber("/cmd_vel",Twist,self.callback)
+        rospy.Subscriber("/cmd_vel",Twist,self.callback)
         self.pub_odom = rospy.Publisher("/odom",odom,queue_size=10)
         self.pub_odometry = rospy.Publisher("/odometry",Pose2D,queue_size=10)
         self.previous_time = rospy.get_time()
         self.rate = rospy.Rate(30)
 
     def callback(self,data):
+        print("_____________________-")
         self.vx = data.linear.x*np.cos(self.angle)
         self.vy = data.linear.x*np.sin(self.angle)
         self.vTheta = data.angular.z
@@ -36,13 +37,14 @@ class Odometry():
         self.x += self.vx*(dT)
         self.y += self.vy*(dT)
         self.angle += self.vTheta*(dT)
-        self.previous_time = rospy.get_time()
 
         if(abs(self.angle) > (2*math.pi)):
             self.angle = self.angle%2*math.pi
         
-        if(self.angle<0):
+        if(self.angle<0 and abs(self.angle)>0.05):
             self.angle = 2*math.pi+self.angle
+        else:
+            self.angle=0
 
         self.odom.x= float(self.x)
         self.odom.y = float(self.y)
@@ -53,7 +55,7 @@ class Odometry():
         self.odometry.y=float(self.y)
         self.odometry.theta=float(self.angle)
         self.pub_odometry.publish(self.odometry)
-
+        print("Vx",self.vx," Vy",self.vy," Vtheta",self.vTheta)
         print("Current position:", self.x,",",self.y," at an angle of: ",self.angle)
 
     def main(self):
