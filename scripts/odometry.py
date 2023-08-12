@@ -26,7 +26,6 @@ class Odometry():
         self.rate = rospy.Rate(30)
 
     def callback(self,data):
-        print("_____________________-")
         self.vx = data.linear.x*np.cos(self.angle)
         self.vy = data.linear.x*np.sin(self.angle)
         self.vTheta = data.angular.z
@@ -41,10 +40,8 @@ class Odometry():
         if(abs(self.angle) > (2*math.pi)):
             self.angle = self.angle%2*math.pi
         
-        if(self.angle<0 and abs(self.angle)>0.05):
+        if(self.angle<0):
             self.angle = 2*math.pi+self.angle
-        else:
-            self.angle=0
 
         self.odom.x= float(self.x)
         self.odom.y = float(self.y)

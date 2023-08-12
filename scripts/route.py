@@ -22,7 +22,7 @@ class Route():
         self.theta=0.0
         self.velocity=0.33
         self.angular_velocity = 0.15
-        self.coordinates = [(1,1),(7,1),(7,7),(1,7)]
+        self.coordinates = []
         self.arrived = False
     
     def callback(self,data):
@@ -35,10 +35,12 @@ class Route():
         if(param=="line"):
             self.coordinates=[(3,0)]
         elif(param=="angle"):
-            self.cordinates=[(3,3)]
+            self.coordinates=[(3,3)]
         elif(param=="route"):
             self.coordinates = [(1,7),(2,7),(2,1),(3,1),(3,7),(4,7),(4,1),(5,1),(5,7),(6,7),(6,1),(7,1),(7,7)]
-    
+        else:
+            print("Default")
+            self.coordinates = [(1,1)]
     def go_to(self,x1,y1):
         cuadrante = 0
         distance = np.sqrt(pow(x1-self.x,2)+pow(self.y-y1,2))
@@ -61,6 +63,9 @@ class Route():
                 cuadrante =3
                 angle = math.pi+angle
 
+        if(angle<0.05):
+            angle=0
+
         print("Calculated angle ",angle)
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
@@ -77,9 +82,8 @@ class Route():
                     self.twist.angular.z=self.angular_velocity
                     self.pub_cmd.publish(self.twist)
         else:
-            #print("+Moving from angle",self.theta, " to ",angle)
-            while(self.theta<angle):
-                #print(angle)
+            print("+Moving from angle",self.theta, " to ",angle)
+            while(self.theta<angle):    
                 if(self.theta+const.ODOM_ANGLE_ERROR>angle):
                     self.twist.linear.x=0
                     self.twist.angular.z=0
