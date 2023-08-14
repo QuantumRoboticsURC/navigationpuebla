@@ -8,8 +8,6 @@ from sensor_msgs.msg import Imu
 from scipy.spatial.transform import Rotation
 
 
-
-
 class Imu_Sim():
     def __init__(self):
         rospy.init_node("ImuSim",anonymous=True)
