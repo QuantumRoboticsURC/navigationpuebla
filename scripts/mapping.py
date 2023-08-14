@@ -50,7 +50,9 @@ class Map():
         self.angle_degrees_z = math.degrees(np.arctan(self.euler_yaw))
     
     def mapping(self):
-
+        
+        self.getangle()
+    
         listax = []
         listay = []
 
