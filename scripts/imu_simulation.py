@@ -47,10 +47,15 @@ class Imu_Sim():
         self.roll= np.arctan(self.diff_y)
         self.yaw = 0.0
 
+<<<<<<< HEAD
         self.r = Rotation.from_euler(self.roll,self.pitch,self.yaw)
         
+=======
+        self.r = Rotation.from_euler('yxz',[self.roll,self.pitch,self.yaw],degrees = False)
 
-        
+        quaternions = self.r.as_quat()
+>>>>>>> 955eaa036f4218b83986b63e4dc6a7fd4738cd40
+
         #self.qx = np.sin(self.roll/2.0) * np.cos(self.pitch/2.0) * np.cos(self.yaw/2.0) - np.cos(self.roll/2.0) * np.sin(self.pitch/2.0) * np.sin(self.yaw/2.0)
         #self.qy = np.cos(self.roll/2.0) * np.sin(self.pitch/2.0) * np.cos(self.yaw/2.0) + np.sin(self.roll/2.0) * np.cos(self.pitch/2.0) * np.sin(self.yaw/2.0)
         #self.qz = np.cos(self.roll/2.0) * np.cos(self.pitch/2.0) * np.sin(self.yaw/2.0) - np.sin(self.roll/2.0) * np.sin(self.pitch/2.0) * np.cos(self.yaw/2.0)
@@ -61,10 +66,10 @@ class Imu_Sim():
         #self.imu_msg.orientation.z = self.qz
         #self.imu_msg.orientation.w = self.qw
 
-        self.imu_msg.orientation.x = self.r[0]
-        self.imu_msg.orientation.y = self.r[1]
-        self.imu_msg.orientation.z = self.r[2]
-        self.imu_msg.orientation.w = self.r[3]
+        self.imu_msg.orientation.x = quaternions[0]+0.02
+        self.imu_msg.orientation.y = quaternions[1]+0.02
+        self.imu_msg.orientation.z = quaternions[2]+0.02
+        self.imu_msg.orientation.w = quaternions[3]+0.02
 
         self.pub_imu.publish(self.imu_msg)
 
