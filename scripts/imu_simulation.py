@@ -8,8 +8,6 @@ from sensor_msgs.msg import Imu
 from scipy.spatial.transform import Rotation
 
 
-
-
 class Imu_Sim():
     def __init__(self):
         rospy.init_node("ImuSim",anonymous=True)
@@ -47,14 +45,9 @@ class Imu_Sim():
         self.roll= np.arctan(self.diff_y)
         self.yaw = 0.0
 
-<<<<<<< HEAD
-        self.r = Rotation.from_euler(self.roll,self.pitch,self.yaw)
-        
-=======
         self.r = Rotation.from_euler('yxz',[self.roll,self.pitch,self.yaw],degrees = False)
 
         quaternions = self.r.as_quat()
->>>>>>> 955eaa036f4218b83986b63e4dc6a7fd4738cd40
 
         #self.qx = np.sin(self.roll/2.0) * np.cos(self.pitch/2.0) * np.cos(self.yaw/2.0) - np.cos(self.roll/2.0) * np.sin(self.pitch/2.0) * np.sin(self.yaw/2.0)
         #self.qy = np.cos(self.roll/2.0) * np.sin(self.pitch/2.0) * np.cos(self.yaw/2.0) + np.sin(self.roll/2.0) * np.cos(self.pitch/2.0) * np.sin(self.yaw/2.0)
