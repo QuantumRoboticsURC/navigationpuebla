@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import numpy as np
 import rospy
 import time
@@ -48,6 +48,7 @@ class Imu_Sim():
         self.yaw = 0.0
 
         self.r = Rotation.from_euler(self.roll,self.pitch,self.yaw)
+        
 
         
         #self.qx = np.sin(self.roll/2.0) * np.cos(self.pitch/2.0) * np.cos(self.yaw/2.0) - np.cos(self.roll/2.0) * np.sin(self.pitch/2.0) * np.sin(self.yaw/2.0)
