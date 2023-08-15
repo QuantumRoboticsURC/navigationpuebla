@@ -51,7 +51,7 @@ class Route():
         if(x1-self.x!=0):
             angle = np.arctan(abs(self.y-y1)/(abs(self.x-x1)))
         else:
-            if(y1<self.y):
+            if(y1>self.y):
                 angle = math.pi/2
             else:
                 angle=math.pi*3/2
@@ -74,8 +74,9 @@ class Route():
 
         if(angle<0.05):
             angle=0
+
         print("Target angle: ",angle)
-        if(self.theta<angle):
+        if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
             self.angular_velocity = -self.angular_velocity
             while(self.theta>angle*const.ODOM_ANGLE_CORRECTION):
