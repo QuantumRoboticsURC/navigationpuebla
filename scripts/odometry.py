@@ -48,9 +48,9 @@ class Odometry():
         self.odom.theta = float(self.angle)
         self.pub_odom.publish(self.odom)
 
-        self.odometry.x = float(self.x)
-        self.odometry.y=float(self.y)
-        self.odometry.theta=float(self.angle)
+        self.odometry.x = float(self.x/const.ODOM_DISTANCE_CORRECTION)
+        self.odometry.y=float(self.y/const.ODOM_DISTANCE_CORRECTION)
+        self.odometry.theta=float(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.pub_odometry.publish(self.odometry)
         print("Vx",self.vx," Vy",self.vy," Vtheta",self.vTheta)
         print("Current position:", self.x/const.ODOM_DISTANCE_CORRECTION,",",self.y/const.ODOM_DISTANCE_CORRECTION," at an angle of: ",self.angle/const.ODOM_ANGLE_CORRECTION)
