@@ -41,12 +41,11 @@ class Route():
         else:
             print("Default")
             self.coordinates = [(1,1)]
+            
     def go_to(self,x1,y1):
         cuadrante = 0
         distance = np.sqrt(pow(x1-self.x,2)+pow(self.y-y1,2))
         angle = np.arctan(abs(self.y-y1)/(abs(self.x-x1)))
-        print("Original angle")
-        print(angle)
 
         if(x1-self.x>0):
             if(y1-self.y)>=0:
@@ -66,7 +65,6 @@ class Route():
         if(angle<0.05):
             angle=0
 
-        print("Calculated angle ",angle)
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
             self.angular_velocity = -self.angular_velocity
@@ -117,7 +115,7 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
-        self.routine("angle")
+        self.routine("route")
         print(self.coordinates)
         while not rospy.is_shutdown():
             for coordinates in self.coordinates:
