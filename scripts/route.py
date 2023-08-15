@@ -124,7 +124,7 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
-        self.routine("angle90")
+        self.routine("line")
         print(self.coordinates)
         while not rospy.is_shutdown():
             for coordinates in self.coordinates:
