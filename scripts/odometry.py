@@ -53,7 +53,7 @@ class Odometry():
         self.odometry.theta=float(self.angle)
         self.pub_odometry.publish(self.odometry)
         print("Vx",self.vx," Vy",self.vy," Vtheta",self.vTheta)
-        print("Current position:", self.x,",",self.y," at an angle of: ",self.angle)
+        print("Current position:", self.x/const.ODOM_DISTANCE_CORRECTION,",",self.y/const.ODOM_DISTANCE_CORRECTION," at an angle of: ",self.angle/const.ODOM_ANGLE_CORRECTION)
 
     def main(self):
         while not rospy.is_shutdown():

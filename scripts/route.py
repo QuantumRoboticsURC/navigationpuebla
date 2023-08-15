@@ -77,8 +77,8 @@ class Route():
 
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
-            self.angular_velocity = -self.angular_velocity
-            while(self.theta>angle):
+            self.angular_velocity = self.angular_velocity
+            while(self.theta>angle*const.ODOM_ANGLE_CORRECTION):
                 if(self.theta-const.ODOM_ANGLE_ERROR<angle):
                     self.twist.linear.x=0.0
                     self.twist.angular.z=0
@@ -90,7 +90,8 @@ class Route():
                     self.pub_cmd.publish(self.twist)
         else:
             print("+Moving from angle",self.theta, " to ",angle)
-            while(self.theta<angle):    
+            while(self.theta<angle*const.ODOM_ANGLE_CORRECTION):
+                self.angular_velocity = -self.angular_velocity    
                 if(self.theta+const.ODOM_ANGLE_ERROR>angle):
                     self.twist.linear.x=0
                     self.twist.angular.z=0
@@ -104,7 +105,7 @@ class Route():
         if(self.angular_velocity<0):
             self.angular_velocity=-self.angular_velocity
         
-        target_time = distance/self.velocity+rospy.get_time()
+        target_time = const.ODOM_DISTANCE_CORRECTION*distance/self.velocity+rospy.get_time()
 
         print("Coordinates: ",self.x," ,",self.y)
         print("Target coordinates: ",x1," ,",y1)
@@ -113,7 +114,7 @@ class Route():
             self.twist.linear.x=self.velocity
             self.twist.angular.z=0
             self.pub_cmd.publish(self.twist)
-            if((self.x >x1-const.POSITION_ERROR and self.x<x1+const.POSITION_ERROR) and (self.y>y1-const.POSITION_ERROR and self.y<y1+const.POSITION_ERROR)):
+            if((self.x >x1*const.ODOM_DISTANCE_CORRECTION-const.POSITION_ERROR and self.x<x1*const.ODOM_DISTANCE_CORRECTION+const.POSITION_ERROR) and (self.y>y1*const.ODOM_DISTANCE_CORRECTION-const.POSITION_ERROR and self.y<y1*const.ODOM_DISTANCE_CORRECTION+const.POSITION_ERROR)):
                 break
         
         print("Arrived")
