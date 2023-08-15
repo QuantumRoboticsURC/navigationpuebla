@@ -34,18 +34,28 @@ class Route():
     def routine(self,param):
         if(param=="line"):
             self.coordinates=[(3,0)]
-        elif(param=="angle"):
+        elif(param=="angle45"):
             self.coordinates=[(3,3)]
+        elif(param=="angle90"):
+            self.coordinates=[(0,3)]
         elif(param=="route"):
             self.coordinates = [(1,7),(2,7),(2,1),(3,1),(3,7),(4,7),(4,1),(5,1),(5,7),(6,7),(6,1),(7,1),(7,7)]
         else:
             print("Default")
             self.coordinates = [(1,1)]
-            
+
     def go_to(self,x1,y1):
         cuadrante = 0
         distance = np.sqrt(pow(x1-self.x,2)+pow(self.y-y1,2))
-        angle = np.arctan(abs(self.y-y1)/(abs(self.x-x1)))
+
+        if(x1-self.x!=0):
+            angle = np.arctan(abs(self.y-y1)/(abs(self.x-x1)))
+        else:
+            if(y1>self.y):
+                angle = math.pi/2
+            else:
+                angle=math.pi*3/2
+
 
         if(x1-self.x>0):
             if(y1-self.y)>=0:
@@ -54,7 +64,7 @@ class Route():
             else:
                 cuadrante = 4
                 angle = 2*math.pi-angle
-        else:
+        elif(x1-self.x<0):
             if(y1-self.y>=0):
                 cuadrante = 2
                 angle = math.pi-angle
@@ -69,7 +79,6 @@ class Route():
             print("-Moving from angle ",self.theta, " to ",angle)
             self.angular_velocity = -self.angular_velocity
             while(self.theta>angle):
-                #print(angle)
                 if(self.theta-const.ODOM_ANGLE_ERROR<angle):
                     self.twist.linear.x=0.0
                     self.twist.angular.z=0
@@ -99,23 +108,23 @@ class Route():
 
         print("Coordinates: ",self.x," ,",self.y)
         print("Target coordinates: ",x1," ,",y1)
-        
+
         while(target_time>rospy.get_time()):
             self.twist.linear.x=self.velocity
             self.twist.angular.z=0
             self.pub_cmd.publish(self.twist)
             if((self.x >x1-const.POSITION_ERROR and self.x<x1+const.POSITION_ERROR) and (self.y>y1-const.POSITION_ERROR and self.y<y1+const.POSITION_ERROR)):
                 break
-
-        self.arrived=True
+        
         print("Arrived")
+        self.arrived=True
         self.pub_go_to.publish(self.arrived)
         self.twist.linear.x=0
         self.twist.angular.z=0
         self.pub_cmd.publish(self.twist)
 
     def main(self):
-        self.routine("route")
+        self.routine("angle90")
         print(self.coordinates)
         while not rospy.is_shutdown():
             for coordinates in self.coordinates:
