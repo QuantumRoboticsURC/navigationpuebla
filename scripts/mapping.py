@@ -40,7 +40,7 @@ class Map():
         self.quatx = data.orientation.x
         self.quaty = data.orientation.y
         self.quatz = data.orientation.z
-        self.quatw = data.orientation.y
+        self.quatw = data.orientation.w
  
     def getangle(self):
         self.euler_roll, self.euler_pitch, self.euler_yaw = nav_functions.euler_from_quaternion([self.quatx, self.quaty, self.quatz, self.quatw])
@@ -64,7 +64,7 @@ class Map():
             state = int(self.x)
             state2 = int(self.y)
 
-            while (state <= self.x or state2 <= self.y):
+            while (state+1 <= self.x and state2+1 <= self.y):
                 listax.append(self.angle_degrees_x)
                 listay.append(self.angle_degrees_y)
         
