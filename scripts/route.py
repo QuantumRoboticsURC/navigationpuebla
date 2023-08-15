@@ -51,21 +51,21 @@ class Route():
         if(x1-self.x!=0):
             angle = np.arctan(abs(self.y-y1)/(abs(self.x-x1)))
         else:
-            if(y1>self.y):
+            if(y1<self.y):
                 angle = math.pi/2
             else:
                 angle=math.pi*3/2
 
 
         if(x1-self.x<0):
-            if(y1-self.y)>=0:
+            if(y1-self.y)<=0:
                 cuadrante = 1
                 angle = angle
             else:
                 cuadrante = 4
                 angle = 2*math.pi-angle
         elif(x1-self.x>0):
-            if(y1-self.y>=0):
+            if(y1-self.y<=0):
                 cuadrante = 2
                 angle = math.pi-angle
             else:
