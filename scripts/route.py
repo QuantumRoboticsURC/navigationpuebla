@@ -75,10 +75,11 @@ class Route():
         if(angle<0.05):
             angle=0
 
-        if(self.theta>angle*const.ODOM_ANGLE_CORRECTION):
+        if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
             self.angular_velocity = self.angular_velocity
             while(self.theta>angle*const.ODOM_ANGLE_CORRECTION):
+                print("angle: ",self.theta)
                 if(self.theta-const.ODOM_ANGLE_ERROR<angle):
                     self.twist.linear.x=0.0
                     self.twist.angular.z=0
@@ -91,6 +92,7 @@ class Route():
         else:
             print("+Moving from angle",self.theta, " to ",angle)
             while(self.theta<angle*const.ODOM_ANGLE_CORRECTION):
+                print("angle: ",self.theta)
                 self.angular_velocity = -self.angular_velocity    
                 if(self.theta+const.ODOM_ANGLE_ERROR>angle):
                     self.twist.linear.x=0
@@ -125,7 +127,7 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
-        self.routine("line")
+        self.routine("angle90")
         print(self.coordinates)
         while not rospy.is_shutdown():
             for coordinates in self.coordinates:
