@@ -58,14 +58,14 @@ class Route():
 
 
         if(x1-self.x<0):
-            if(y1-self.y)<=0:
+            if(y1-self.y)>=0:
                 cuadrante = 1
                 angle = angle
             else:
                 cuadrante = 4
                 angle = 2*math.pi-angle
         elif(x1-self.x>0):
-            if(y1-self.y<=0):
+            if(y1-self.y>=0):
                 cuadrante = 2
                 angle = math.pi-angle
             else:
