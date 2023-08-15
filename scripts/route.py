@@ -75,9 +75,9 @@ class Route():
         if(angle<0.05):
             angle=0
         print("Target angle: ",angle)
-        if(self.theta>angle):
+        if(self.theta<angle):
             print("-Moving from angle ",self.theta, " to ",angle)
-            self.angular_velocity = -self.angular_velocity
+            #self.angular_velocity = -self.angular_velocity
             while(self.theta>angle*const.ODOM_ANGLE_CORRECTION):
                 if(self.theta-const.ODOM_ANGLE_ERROR<angle):
                     self.twist.linear.x=0.0
@@ -90,6 +90,7 @@ class Route():
                     self.pub_cmd.publish(self.twist)
         else:
             print("+Moving from angle",self.theta, " to ",angle)
+            self.angular_velocity = -self.angular_velocity
             while(self.theta<angle*const.ODOM_ANGLE_CORRECTION): 
                 if(self.theta+const.ODOM_ANGLE_ERROR>angle):
                     self.twist.linear.x=0
