@@ -4,6 +4,8 @@ import rospy
 import time
 from std_msgs.msg import Int32,Float64
 
+rospy.init_node("aproach_lab",anonymous=True)
+
 joint1 = rospy.Publisher("arm_teleop/joint1",Float64,queue_size=1)
 joint2 = rospy.Publisher("arm_teleop/joint2_lab",Float64,queue_size=1)
 joint3 = rospy.Publisher("arm_lab/joint3",Int32,queue_size=1)
