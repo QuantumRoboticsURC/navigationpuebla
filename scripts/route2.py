@@ -44,35 +44,18 @@ class Route():
             print("Default")
             self.coordinates = [(1,1)]
 
+    def map(self,x, in_min, in_max, out_min, out_max):
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
     def go_to(self,x1,y1):
-        cuadrante = 0
         distance = np.sqrt(pow(x1-self.x,2)+pow(self.y-y1,2))
-
-        if(x1-self.x!=0):
-            angle = np.arctan(abs(self.y-y1)/(abs(self.x-x1)))
-        else:
-            if(y1>self.y):
-                angle = math.pi/2
-            else:
-                angle=3*math.pi/2
-
-        if(x1-self.x>0):
-            if(y1-self.y)>=0:
-                cuadrante = 1
-                angle = angle
-            else:
-                cuadrante = 4
-                angle = 2*math.pi-angle
-        elif(x1-self.x<0):
-            if(y1-self.y>=0):
-                cuadrante = 2
-                angle = math.pi-angle
-            else:
-                cuadrante =3
-                angle = math.pi+angle
-
+        angle= np.arctan2((y1-self.y),(x1-self.x))
+        #angle =self.map(angle,-math.pi,math.pi,0,2*math.pi)
+        print(math.atan((y1-self.y)/(x1-self.x))*180/math.pi)
+        print("::::",angle*180/math.pi)
         if(angle<0.05):
             angle=0
+
         
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
