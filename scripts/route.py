@@ -51,7 +51,7 @@ class Route():
         if(x1-self.x!=0):
             angle = np.arctan(abs(self.y-y1)/(abs(self.x-x1)))
         else:
-            if(y1>self.y):
+            if(y1<self.y):
                 angle = math.pi/2
             else:
                 angle=3*math.pi/2
@@ -71,7 +71,7 @@ class Route():
                 cuadrante =3
                 angle = math.pi+angle
 
-        if(angle<0.05):
+        if(angle<0.0005):
             angle=0
         
         if(self.theta>angle):
@@ -119,7 +119,7 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
-        self.routine("route")
+        self.routine("angle90")
         print(self.coordinates)
         while not rospy.is_shutdown():
             for coordinates in self.coordinates:
