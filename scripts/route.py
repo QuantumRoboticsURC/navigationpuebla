@@ -57,14 +57,14 @@ class Route():
                 angle=3*math.pi/2
 
         if(x1-self.x>0):
-            if(y1-self.y)>=0:
+            if(not (y1-self.y))>=0:
                 cuadrante = 1
                 angle = angle
             else:
                 cuadrante = 4
                 angle = 2*math.pi-angle
         elif(x1-self.x<0):
-            if(y1-self.y>=0):
+            if(not (y1-self.y>=0)):
                 cuadrante = 2
                 angle = math.pi-angle
             else:
@@ -76,7 +76,6 @@ class Route():
         
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
-            self.angular_velocity = -self.angular_velocity
             while(self.theta>angle*const.ODOM_ANGLE_CORRECTION):
                 if(self.theta-const.ODOM_ANGLE_ERROR<angle):
                     self.twist.linear.x=0.0
@@ -85,11 +84,10 @@ class Route():
                     break
                 else:
                     self.twist.linear.x=0
-                    self.twist.angular.z=self.angular_velocity
+                    self.twist.angular.z=-self.angular_velocity
                     self.pub_cmd.publish(self.twist)
         else:
             print("+Moving from angle",self.theta, " to ",angle)
-            #self.angular_velocity = -self.angular_velocity
             while(self.theta<angle*const.ODOM_ANGLE_CORRECTION): 
                 if(self.theta+const.ODOM_ANGLE_ERROR>angle):
                     self.twist.linear.x=0
@@ -100,10 +98,7 @@ class Route():
                     self.twist.linear.x=0
                     self.twist.angular.z=self.angular_velocity
                     self.pub_cmd.publish(self.twist)
-        
-        if(self.angular_velocity<0):
-            self.angular_velocity=-self.angular_velocity
-        
+
         target_time = const.ODOM_DISTANCE_CORRECTION*distance/self.velocity+rospy.get_time()
 
         print("Coordinates: ",self.x," ,",self.y)
