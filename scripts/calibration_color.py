@@ -24,7 +24,7 @@ def draw(mask,color):
     return False
     
         
-cap = cv2.VideoCapture("CAMERA_ZED2I")
+cap = cv2.VideoCapture("/dev/CAMERA_ZED2I")
 rospy.init_node("calibration")
 cv2.namedWindow('Trackbars')
 bridge = CvBridge()
