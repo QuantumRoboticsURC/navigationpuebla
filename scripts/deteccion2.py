@@ -8,6 +8,7 @@ import time
 import consts as const
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image, CompressedImage
+from std_msgs.msg import Bool
 
 class Center():
     def __init__(self):
@@ -17,6 +18,7 @@ class Center():
         self.twist = Twist()
         self.image_pub = rospy.Publisher("/detection_image_raw",Image,queue_size=10)
         self.image_pub_arm = rospy.Publisher("/detection_arm__image_raw",Image,queue_size=10)
+        self.deteccion= rospy.Publisher("/deteccion_roca",Bool,queue_size=10)
         #self.image_pub_compressed = rospy.Publisher("/detection_image_compressed",CompressedImage,queue_size=10)
         #self.image_pub_arm_compressed = rospy.Publisher("/detection_arm__image_compressed",CompressedImage,queue_size=10)
         #Position Variables
@@ -26,7 +28,7 @@ class Center():
         self.midheight = 0
         #Camera Variables
         print("cam1") 
-        self.cam_1 = cv2.VideoCapture("/dev/CAMERA_ARM_LAB")
+        self.cam_1 = cv2.VideoCapture("/dev/CAMERA_ZED2I")
         print("cam2")
         self.cam_2 = cv2.VideoCapture("/dev/CAMERA_ARM")
         #Colors
@@ -126,6 +128,8 @@ class Center():
                     cont = True
                 
                 detected = a == True or b==True or c ==True
+
+                self.deteccion.publish(detected)
 
                 #Shows the image, this should only be run on the personal PC. Running it on the jetson will cause problems
                 #cv2.imshow('video',frameFlip)
