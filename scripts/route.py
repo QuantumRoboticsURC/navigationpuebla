@@ -11,10 +11,15 @@ import math
 class Route():
     def __init__(self):
         rospy.init_node("Route",anonymous=True)
+
         self.twist = Twist()
         self.pub_cmd = rospy.Publisher("/cmd_vel",Twist,queue_size=10)
         self.pub_go_to = rospy.Publisher("/go_to",Bool,queue_size=10)
+
         rospy.Subscriber("/odom",odom,self.callback)
+        rospy.Subscriber("/deteccion_roca",Bool,self.callback2)
+
+        self.roca_detected=False
         self.start_time = rospy.get_time()
         self.rate= rospy.Rate(10)
         self.x=0.0
@@ -29,7 +34,9 @@ class Route():
         self.x=data.x
         self.y=data.y
         self.theta=data.theta
-
+    
+    def callback2(self,data):
+        self.roca_detected=data.data
 
     def routine(self,param):
         if(param=="line"):
@@ -38,6 +45,8 @@ class Route():
             self.coordinates=[(3,3)]
         elif(param=="angle90"):
             self.coordinates=[(0,3)]
+        elif(param=="zig"):
+            self.coordinates=[(0,3),(3,0)]
         elif(param=="route"):
             self.coordinates = [(1,7),(2,7),(2,1),(3,1),(3,7),(4,7),(4,1),(5,1),(5,7),(6,7),(6,1),(7,1),(7,7)]
         else:
@@ -88,7 +97,7 @@ class Route():
                     self.pub_cmd.publish(self.twist)
         else:
             print("+Moving from angle",self.theta, " to ",angle)
-            while(self.theta<angle*const.ODOM_ANGLE_CORRECTION): 
+            while(self.theta<angle*const.ODOM_ANGLE_CORRECTION and not self.roca_detected): 
                 if(self.theta+const.ODOM_ANGLE_ERROR>angle):
                     self.twist.linear.x=0
                     self.twist.angular.z=0
@@ -104,7 +113,7 @@ class Route():
         print("Coordinates: ",self.x," ,",self.y)
         print("Target coordinates: ",x1," ,",y1)
 
-        while(target_time>rospy.get_time()):
+        while(target_time>rospy.get_time() and not self.roca_detected):
             self.twist.linear.x=self.velocity
             self.twist.angular.z=0
             self.pub_cmd.publish(self.twist)
@@ -112,8 +121,11 @@ class Route():
                 break
         
         print("Arrived")
+        
         self.arrived=True
         self.pub_go_to.publish(self.arrived)
+        self.arrived=False
+
         self.twist.linear.x=0
         self.twist.angular.z=0
         self.pub_cmd.publish(self.twist)
