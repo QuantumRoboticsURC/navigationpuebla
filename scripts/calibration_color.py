@@ -1,11 +1,15 @@
+#!/usr/bin/env python
 import cv2
 import numpy as np
+import rospy
+from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import Image, CompressedImage
 
 def nothing(x):
     pass
 
 def draw(mask,color):
-    contornos,_ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    _, contornos, _= cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for c in contornos:
         area = cv2.contourArea(c)
         if area > 3000:
@@ -21,9 +25,10 @@ def draw(mask,color):
     
         
 cap = cv2.VideoCapture(0)
-
+rospy.init_node("calibration")
 cv2.namedWindow('Trackbars')
-
+bridge = CvBridge()
+image_pub = rospy.Publisher("/calibration_img",Image,queue_size=10)
 cv2.createTrackbar('blueLow', 'Trackbars',0,100,nothing)
 cv2.createTrackbar('BlueHigh', 'Trackbars',100,100,nothing)
 
@@ -122,7 +127,8 @@ while True:
 
             
         
-
+        img_msg = bridge.cv2_to_imgmsg(frame,"bgr8")
+        image_pub.publish(img_msg)
         cv2.imshow('video',frameFlip)
 
 
