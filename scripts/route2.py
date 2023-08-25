@@ -15,9 +15,10 @@ class Route():
         self.twist = Twist()
         self.pub_cmd = rospy.Publisher("/cmd_vel",Twist,queue_size=10)
         self.pub_go_to = rospy.Publisher("/go_to",Bool,queue_size=10)
-
+        self.pub_simulation = rospy.Publisher("/simulation",Bool,queue_size=10)
         rospy.Subscriber("/odom",odom,self.callback)
         rospy.Subscriber("/deteccion_roca",Bool,self.callback2)
+        
 
         self.roca_detected=False
         self.start_time = rospy.get_time()
@@ -100,8 +101,8 @@ class Route():
 
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
-            while(self.theta>angle*self.ODOM_ANGLE):
-                if(self.theta-const.ODOM_ANGLE_ERROR<angle):
+            while(self.theta>angle):
+                if(self.theta-const.ODOM_ANGLE_ERROR<angle and not self.roca_detected):
                     self.twist.linear.x=0.0
                     self.twist.angular.z=0
                     self.pub_cmd.publish(self.twist)
@@ -113,7 +114,7 @@ class Route():
         else:
 
             print("+Moving from angle",self.theta, " to ",angle)
-            while(self.theta<angle*self.ODOM_ANGLE and not self.roca_detected): 
+            while(self.theta<angle and not self.roca_detected): 
                 if(self.theta+const.ODOM_ANGLE_ERROR>angle):
                     self.twist.linear.x=0
                     self.twist.angular.z=0
@@ -149,7 +150,7 @@ class Route():
 
     def main(self):
         self.simulation=False
-        self.routine("angle45")
+        self.routine("zig")
         print(self.coordinates)
         while not rospy.is_shutdown():
             for coordinates in self.coordinates:

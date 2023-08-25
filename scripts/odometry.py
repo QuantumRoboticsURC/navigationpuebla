@@ -3,6 +3,7 @@ import numpy as np
 import rospy
 from geometry_msgs.msg import Twist
 from navigationpuebla.msg import odom
+from std_msgs.msg import Bool
 from geometry_msgs.msg import Pose2D
 import time
 import consts as const
@@ -24,10 +25,12 @@ class Odometry():
         self.pub_odometry = rospy.Publisher("/odometry",Pose2D,queue_size=10)
         self.previous_time = rospy.get_time()
         self.rate = rospy.Rate(30)
-
+        self.dir = 1
+    
+ 
     def callback(self,data):
-        self.vx = data.linear.x*np.cos(self.angle)
-        self.vy = data.linear.x*np.sin(self.angle)
+        self.vx = -data.linear.x*np.cos(self.angle/const.ODOM_ANGLE_CORRECTION)
+        self.vy = data.linear.x*np.sin(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.vTheta = data.angular.z
 
         
@@ -43,9 +46,9 @@ class Odometry():
         if(self.angle<0):
             self.angle = 2*math.pi+self.angle
 
-        self.odom.x= float(self.x)
-        self.odom.y = float(self.y)
-        self.odom.theta = float(self.angle)
+        self.odom.x= float(self.x/const.ODOM_DISTANCE_CORRECTION)
+        self.odom.y = float(self.y/const.ODOM_DISTANCE_CORRECTION)
+        self.odom.theta = float(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.pub_odom.publish(self.odom)
 
         self.odometry.x = float(self.x/const.ODOM_DISTANCE_CORRECTION)
@@ -53,7 +56,9 @@ class Odometry():
         self.odometry.theta=float(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.pub_odometry.publish(self.odometry)
         print("Vx",self.vx," Vy",self.vy," Vtheta",self.vTheta)
-        print("Current position:", self.x/const.ODOM_DISTANCE_CORRECTION,",",self.y/const.ODOM_DISTANCE_CORRECTION," at an angle of: ",self.angle/const.ODOM_ANGLE_CORRECTION)
+
+
+        print("Current position:", -self.x/const.ODOM_DISTANCE_CORRECTION,",",-self.y/const.ODOM_DISTANCE_CORRECTION," at an angle of: ",self.angle/const.ODOM_ANGLE_CORRECTION)
 
     def main(self):
         while not rospy.is_shutdown():
