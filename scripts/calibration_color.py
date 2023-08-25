@@ -24,7 +24,7 @@ def draw(mask,color):
     return False
     
         
-cap = cv2.VideoCapture("/dev/CAMERA_ZED2I")
+cap = cv2.VideoCapture(0)
 rospy.init_node("calibration")
 cv2.namedWindow('Trackbars')
 bridge = CvBridge()
@@ -76,7 +76,7 @@ while True:
     blueLow = np.array([valbluelow,100,20], np.uint8)
     blueHigh = np.array([valbluehigh,255,255], np.uint8)
 
-    greenLow = np.array([valgreenlow,100,20], np.uint8)
+    greenLow = np.array([valgreenlow,30,20], np.uint8)
     greenHigh = np.array([valgreenhigh,255,255], np.uint8)
 
     redLow1 = np.array([valredlow1,100,20], np.uint8)

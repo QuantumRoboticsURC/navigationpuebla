@@ -66,7 +66,7 @@ class Route():
                 angle=3*math.pi/2
 
         if(x1-self.x>0):
-            if(not (y1-self.y))>=0:
+            if(not (y1-self.y)>=0):
                 cuadrante = 1
                 angle = angle
             else:
@@ -80,9 +80,9 @@ class Route():
                 cuadrante =3
                 angle = math.pi+angle
 
-        if(angle<0.0005):
+        if(angle<0.0005 or angle>6.2830):
             angle=0
-        
+        print(angle*180/math.pi)
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
             while(self.theta>angle*const.ODOM_ANGLE_CORRECTION):
