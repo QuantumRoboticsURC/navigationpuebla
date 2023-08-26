@@ -42,10 +42,8 @@ class Odometry():
 
         if(self.angle/const.ODOM_ANGLE_CORRECTION > (2*math.pi)):
             self.angle = self.angle%2*math.pi
-            print("AAAAAAAA")
         if(self.angle/const.ODOM_ANGLE_CORRECTION<0):
-            self.angle = 0
-            print("BBBBB")
+            self.angle = 0.0
 
         self.odom.x= float(self.x/const.ODOM_DISTANCE_CORRECTION)
         self.odom.y = float(self.y/const.ODOM_DISTANCE_CORRECTION)
