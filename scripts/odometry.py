@@ -17,7 +17,7 @@ class Odometry():
         self.vTheta=0.0
         self.angle = 0.0
         self.x = 0.0
-        self.y = 0.0
+        self.y =0.
         self.odom = odom()
         self.odometry = Pose2D()
         rospy.Subscriber("/cmd_vel",Twist,self.callback)
@@ -29,13 +29,8 @@ class Odometry():
     
  
     def callback(self,data):
-<<<<<<< HEAD
-        self.vx = -data.linear.x*np.cos(self.angle/const.ODOM_ANGLE_ERROR)
-        self.vy = data.linear.x*np.sin(self.angle/const.ODOM_DISTANCE_CORRECTION)
-=======
-        self.vx = -data.linear.x*np.cos(self.angle/const.ODOM_ANGLE_CORRECTION)
+        self.vx = data.linear.x*np.cos(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.vy = data.linear.x*np.sin(self.angle/const.ODOM_ANGLE_CORRECTION)
->>>>>>> 71272bee6f26c7d838c5bc49b53ec16a866e1a4b
         self.vTheta = data.angular.z
 
         
@@ -45,31 +40,23 @@ class Odometry():
         self.y += self.vy*(dT)
         self.angle += self.vTheta*(dT)
 
-        if(abs(self.angle) > (2*math.pi)):
-            #self.angle = self.angle%2*math.pi
-            self.angle = self.angle-2*math.pi
-        
-        if(self.angle<0):
-            self.angle = 2*math.pi+self.angle
+        if(self.angle/const.ODOM_ANGLE_CORRECTION > (2*math.pi)):
+            self.angle = self.angle%2*math.pi
+            print("AAAAAAAA")
+        if(self.angle/const.ODOM_ANGLE_CORRECTION<0):
+            self.angle = 0
+            print("BBBBB")
 
-<<<<<<< HEAD
-        self.odom.x= float(self.x)
-        self.odom.y = float(self.y)
-=======
         self.odom.x= float(self.x/const.ODOM_DISTANCE_CORRECTION)
         self.odom.y = float(self.y/const.ODOM_DISTANCE_CORRECTION)
->>>>>>> 71272bee6f26c7d838c5bc49b53ec16a866e1a4b
         self.odom.theta = float(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.pub_odom.publish(self.odom)
-
         self.odometry.x = float(self.x/const.ODOM_DISTANCE_CORRECTION)
         self.odometry.y=float(self.y/const.ODOM_DISTANCE_CORRECTION)
         self.odometry.theta=float(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.pub_odometry.publish(self.odometry)
         print("Vx",self.vx," Vy",self.vy," Vtheta",self.vTheta)
-
-
-        print("Current position:", -self.x/const.ODOM_DISTANCE_CORRECTION,",",-self.y/const.ODOM_DISTANCE_CORRECTION," at an angle of: ",self.angle/const.ODOM_ANGLE_CORRECTION)
+        print("Current position:", self.x/const.ODOM_DISTANCE_CORRECTION,",",self.y/const.ODOM_DISTANCE_CORRECTION," at an angle of: ",self.angle/const.ODOM_ANGLE_CORRECTION)
 
     def main(self):
         while not rospy.is_shutdown():
