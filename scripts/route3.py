@@ -30,8 +30,10 @@ class Route():
         self.coordinates = []
         self.arrived = False
         self.simulation = False
-        self.ODOM_ANGLE = const.ODOM_ANGLE_CORRECTION
+        #self.ODOM_ANGLE = const.ODOM_ANGLE_CORRECTION
         self.ODOM_DISTANCE = const.ODOM_DISTANCE_CORRECTION
+        self.posxa=0
+        self.posya=0
     
     def callback(self,data):
         self.x=data.x
@@ -43,7 +45,7 @@ class Route():
 
     def routine(self,param):
         if(param=="line"):
-            self.coordinates=[(3,0)]
+            self.coordinates=[(4,0)]
         elif(param=="angle45"):
             self.coordinates=[(3,3)]
         elif(param=="angle90"):
@@ -51,7 +53,7 @@ class Route():
         elif(param=="zig"):
             self.coordinates=[(0,3),(3,0)]
         elif(param=="route"):
-            self.coordinates = [(7,0),(7,0)]
+            self.coordinates = [(7,0),(7,2),(0,2),(0,0)]
 
             #self.coordinates = [(1,7),(2,7),(2,1),(3,1),(3,7),(4,7),(4,1),(5,1),(5,7),(6,7),(6,1),(7,1),(7,7)]
         else:
@@ -60,50 +62,49 @@ class Route():
 
     def set_angle(self,x1,y1):
         cuadrante = 0
+        print(self.y)
+        angle=np.arctan2((y1-self.posya),x1-self.posxa)
+        print(angle)
+        # if(x1-self.x!=0):
+        #     angle = np.arctan(abs(self.y-y1)/(abs(self.x-x1)))
+        # else:
+        #     #print(not(y1>self.y) and ( self.simulation))
+        #     if(((y1>self.y))):
+        #         cuadrante = 1
+        #         angle = math.pi/2
 
-        if(x1-self.x!=0):
-            angle = np.arctan(abs(self.y-y1)/(abs(self.x-x1)))
-        else:
-            print(not(y1>self.y) and ( self.simulation))
-            if(((y1>self.y)) and (self.simulation)):
-                cuadrante = 1
-                angle = math.pi/2
-            else:
-                cuadrante = 4
-                angle=3*math.pi/2
-
-        if(x1-self.x>0):
-            if((y1-self.y>=0) and ( self.simulation)):
-                cuadrante = 1
-                angle = angle
-            else:
-                cuadrante = 4
-                angle = 2*math.pi-angle
-        elif(x1-self.x<0):
-            if((y1-self.y>=0) and ( self.simulation)):
-                cuadrante = 2
-                angle = math.pi-angle
-            else:
-                cuadrante =3
-                angle = math.pi+angle
+        # if(x1-self.x>0):
+        #     if((y1-self.y>=0) and ( self.simulation)):
+        #         cuadrante = 1
+        #         angle = angle
+        #     else:
+        #         cuadrante = 4
+        #         angle = 2*math.pi-angle
+        # elif(x1-self.x<0):
+        #     if((y1-self.y>=0) and ( self.simulation)):
+        #         cuadrante = 2
+        #         angle = math.pi-angle
+        #     else:
+        #         cuadrante =3
+        #         angle = math.pi+angle
 
         print(not self.simulation)
-        print(cuadrante)
-        if(angle<0.0005 or angle>6.2830):
-            angle=0
-
+        #print(cuadrante)
+        # if(angle<0.0005 or angle>6.2830):
+        #     angle=0
+        if angle<0:
+            angle=abs(angle)+math.pi
         return angle
 
     def go_to(self,x1,y1):
-        distance = np.sqrt(pow(x1-self.x,2)+pow(self.y-y1,2))
+        distance = np.sqrt(pow(x1-self.posxa,2)+pow(y1-self.posya,2))
         angle = self.set_angle(x1,y1)
-
         print(angle*180/math.pi)
 
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
-            while(self.theta>angle*self.ODOM_ANGLE):
-                if(self.theta-const.ODOM_ANGLE_ERROR<angle):
+            while(self.theta>angle):#*self.ODOM_ANGLE):
+                if(self.theta<=angle):
                     self.twist.linear.x=0.0
                     self.twist.angular.z=0
                     self.pub_cmd.publish(self.twist)
@@ -115,8 +116,8 @@ class Route():
         else:
 
             print("+Moving from angle",self.theta, " to ",angle)
-            while(self.theta<angle*self.ODOM_ANGLE and not self.roca_detected): 
-                if(self.theta+const.ODOM_ANGLE_ERROR>angle):
+            while(self.theta<angle): 
+                if(self.theta>=angle):
                     self.twist.linear.x=0
                     self.twist.angular.z=0
                     self.pub_cmd.publish(self.twist)
@@ -157,6 +158,8 @@ class Route():
             for coordinates in self.coordinates:
                 print("Going to coordinate: ",self.coordinates.index(coordinates))
                 self.go_to(coordinates[0],coordinates[1])
+                self.posxa=coordinates[0]
+                self.posya=coordinates[1]
             break
             self.rate.sleep()
     
@@ -165,5 +168,3 @@ class Route():
 if __name__=="__main__":
     route = Route()
     route.main()
-
-
