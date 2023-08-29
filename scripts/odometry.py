@@ -3,6 +3,7 @@ import numpy as np
 import rospy
 from geometry_msgs.msg import Twist
 from navigationpuebla.msg import odom
+from std_msgs.msg import Bool
 from geometry_msgs.msg import Pose2D
 import time
 import consts as const
@@ -16,7 +17,7 @@ class Odometry():
         self.vTheta=0.0
         self.angle = 0.0
         self.x = 0.0
-        self.y = 0.0
+        self.y =0.
         self.odom = odom()
         self.odometry = Pose2D()
         rospy.Subscriber("/cmd_vel",Twist,self.callback)
@@ -24,10 +25,17 @@ class Odometry():
         self.pub_odometry = rospy.Publisher("/odometry",Pose2D,queue_size=10)
         self.previous_time = rospy.get_time()
         self.rate = rospy.Rate(30)
-
+        self.dir = 1
+    
+ 
     def callback(self,data):
+<<<<<<< HEAD
         self.vx = -data.linear.x*np.cos(self.angle)
         self.vy = data.linear.x*np.sin(self.angle)
+=======
+        self.vx = data.linear.x*np.cos(self.angle/const.ODOM_ANGLE_CORRECTION)
+        self.vy = data.linear.x*np.sin(self.angle/const.ODOM_ANGLE_CORRECTION)
+>>>>>>> 2b4ea919bdcdbaad3f172167565993c583c8b2ed
         self.vTheta = data.angular.z
 
         
@@ -37,17 +45,15 @@ class Odometry():
         self.y += self.vy*(dT)
         self.angle += self.vTheta*(dT)
 
-        if(abs(self.angle) > (2*math.pi)):
+        if(self.angle/const.ODOM_ANGLE_CORRECTION > (2*math.pi)):
             self.angle = self.angle%2*math.pi
-        
-        if(self.angle<0):
-            self.angle = 2*math.pi+self.angle
+        if(self.angle/const.ODOM_ANGLE_CORRECTION<0):
+            self.angle = 0.0
 
-        self.odom.x= float(self.x)
-        self.odom.y = float(self.y)
-        self.odom.theta = float(self.angle)
+        self.odom.x= float(self.x/const.ODOM_DISTANCE_CORRECTION)
+        self.odom.y = float(self.y/const.ODOM_DISTANCE_CORRECTION)
+        self.odom.theta = float(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.pub_odom.publish(self.odom)
-
         self.odometry.x = float(self.x/const.ODOM_DISTANCE_CORRECTION)
         self.odometry.y=float(self.y/const.ODOM_DISTANCE_CORRECTION)
         self.odometry.theta=float(self.angle/const.ODOM_ANGLE_CORRECTION)

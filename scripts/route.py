@@ -79,8 +79,14 @@ class Route():
             else:
                 cuadrante =3
                 angle = math.pi+angle
+<<<<<<< HEAD
         if(angle<0.005 or angle>6.2830):
            angle=0
+=======
+
+        if(angle<0.0005 or angle>6.2830):
+            angle=0
+>>>>>>> 2b4ea919bdcdbaad3f172167565993c583c8b2ed
         print(angle*180/math.pi)
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
