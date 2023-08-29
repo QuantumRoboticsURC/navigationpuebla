@@ -78,12 +78,12 @@ class Center():
     def cambiovel(self):
         
         if self.pos==-1 or self.pos==1:
-            if self.veces<=2:
-                self.twist.linear.x=0
-                self.twist.angular.z=self.veces*.08*self.pos
-            else:
-                regla3=(abs(self.x - self.midpoint)-const.ANGLE_ERROR ) * 0.08 / (self.midpoint - const.ANGLE_ERROR ) + 0.08
-                print(regla3)
+            #if self.veces<=2:
+             #   self.twist.linear.x=0
+             #   self.twist.angular.z=self.veces*.08*self.pos
+            #else:
+            regla3=(abs(self.x - self.midpoint)-const.ANGLE_ERROR ) * 0.08 / (self.midpoint - const.ANGLE_ERROR ) + 0.08
+            print(regla3)
                 self.twist.linear.x=0
                 self.twist.angular.z=regla3*self.pos
     
