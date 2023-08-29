@@ -151,7 +151,7 @@ class Map():
     def main(self):
 
         while not rospy.is_shutdown():
-            if (self.x is not None and self.y is not None and self.quatx is not None and self.quaty is not None and self.quaty is not None and self.quatw is not None):
+            if (self.x is not None and self.y is not None and self.quatx is not None and self.quaty is not None and self.quatz is not None and self.quatw is not None):
                 self.mapping()
             self.rate.sleep()
 

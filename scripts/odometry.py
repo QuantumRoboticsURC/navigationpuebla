@@ -26,7 +26,7 @@ class Odometry():
         self.rate = rospy.Rate(30)
 
     def callback(self,data):
-        self.vx = data.linear.x*np.cos(self.angle)
+        self.vx = -data.linear.x*np.cos(self.angle)
         self.vy = data.linear.x*np.sin(self.angle)
         self.vTheta = data.angular.z
 

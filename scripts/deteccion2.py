@@ -29,30 +29,31 @@ class Center():
         #Camera Variables
         print("cam1") 
         self.cam_1 = cv2.VideoCapture("/dev/CAMERA_ZED2I")
-        print("cam2")
-        self.cam_2 = cv2.VideoCapture("/dev/CAMERA_ARM")
+        #print("cam2")
+        #self.cam_2 = cv2.VideoCapture("/dev/CAMERA_ARM")
         #Colors
-        self.blueLow = np.array([95,100,20], np.uint8)
-        self.blueHigh = np.array([125,255,255], np.uint8)
-        self.greenLow = np.array([45,100,20], np.uint8)
-        self.greenHigh = np.array([65,255,255], np.uint8)
-        self.redLow1 = np.array([0,100,20], np.uint8)
-        self.redHigh1 = np.array([5,255,255], np.uint8)
-        self.redLow2 = np.array([170,100,20], np.uint8)
-        self.redHigh2 = np.array([179,255,255], np.uint8)
+        self.blueLow = np.array([106.1,132.5,10], np.uint8)
+        self.blueHigh = np.array([110,255,149.65], np.uint8)
+        self.greenLow = np.array([40,85.95,10], np.uint8)
+        self.greenHigh = np.array([58.2,255,255], np.uint8)
+        self.redLow1 = np.array([3.9,255,142.3], np.uint8)
+        self.redHigh1 = np.array([12.8,255,255], np.uint8)
+        self.redLow2 = np.array([176.57,179.05,17.35], np.uint8)
+        self.redHigh2 = np.array([179,255,142.3], np.uint8)
         #Other variables
         self.rock=""
         self.rocks = []
         self.bridge = CvBridge()
-        self.rate = rospy.Rate(10)
+        self.rate = rospy.Rate(200)
 
     def get_center(self):
         ret,frame = self.cam_1.read()
-        ret1,frame1 = self.cam_2.read()
+        #ret1,frame1 = self.cam_2.read()
         if(ret): 
-            self.midpoint = frame.shape[1]/2
-        if(ret1):
-            self.midheight = frame1.shape[2]/2
+            self.midpoint = frame.shape[1]/4
+            self.midheight= frame.shape[0]/2
+       # if(ret1):
+           # self.midheight2 = frame1.shape[2]/2
         self.pos=2
         self.veces=0
 
@@ -60,9 +61,12 @@ class Center():
         contornos, _ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for c in contornos:
             area = cv2.contourArea(c)
-            if area > 3000:
+            if area > 50 and area<500:
                 moments = cv2.moments(c)
                 if(moments["m00"]==0): moments["m00"]=1
+                pos_y = int(moments["m01"]/moments["m00"])
+                if(pos_y <= self.midheight):
+                    return False
                 self.x = int(moments["m10"]/moments["m00"])
                 self.y = int(moments["m01"]/moments["m00"])
                 nuevoContorno = cv2.convexHull(c)
@@ -137,17 +141,20 @@ class Center():
                 #Code that Checks if the rock is on the right or on the left. Or if it has already been centered 
 
                 if (self.midpoint*2-self.x+const.ANGLE_ERROR >self.midpoint and self.midpoint*2-self.x-const.ANGLE_ERROR<self.midpoint and detected):
-                    self.pos=1
-                    self.twist.linear.x=0
-                    self.twist.angular.z=0
-                    self.cmd_vel_pub.publish(self.twist)
-                    print("Esta en frente")
-                    self.twist.linear.x=.20
-                    self.twist.angular.z=0
-                    #time.sleep(1)
-                    self.cmd_vel_pub.publish(self.twist)
-                    #time.sleep(2)
-                    center_rock = False #This should be True, currently for testing it is set to False. 
+                    if(self.pos != 0):
+                        self.contador = 1
+                        print(self.contador)
+                    else:           
+                        self.contador +=1
+                        print(self.contador)
+                    self.pos=0
+                    if(self.contador >= 10):
+                        print("Esta en frente")
+                        self.twist.linear.x=.16
+                        self.twist.angular.z=0
+                        time.sleep(1)
+                        self.cmd_vel_pub.publish(self.twist)
+                    center_rock = False #This should be True, currently for testing it is set to False.  
                 elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected):
                     if self.pos != 1:
                         inicio=time.time()
