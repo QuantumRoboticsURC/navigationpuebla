@@ -29,13 +29,10 @@ class Odometry():
     
  
     def callback(self,data):
-<<<<<<< HEAD
         self.vx = -data.linear.x*np.cos(self.angle)
         self.vy = data.linear.x*np.sin(self.angle)
-=======
         self.vx = data.linear.x*np.cos(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.vy = data.linear.x*np.sin(self.angle/const.ODOM_ANGLE_CORRECTION)
->>>>>>> 2b4ea919bdcdbaad3f172167565993c583c8b2ed
         self.vTheta = data.angular.z
 
         
