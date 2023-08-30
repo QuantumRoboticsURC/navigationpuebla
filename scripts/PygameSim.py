@@ -1,17 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.7
 
 import rospy
+import numpy as np
 from geometry_msgs.msg import Twist, Pose2D
 
 class PygameSim():
     def __init__(self):
         rospy.init_node("Pygame",anonymous=True)
         rospy.Subscriber("/odometry",Pose2D,self.callback)
-        rospy.Subscriber("/cmd_vel",Twist,self.callback)
+        rospy.Subscriber("/cmd_vel",Twist,self.callback2)
         self.x=0.0
         self.y=0.0
         self.theta=0.0
-        #Cmd_vel aún no implmentado
+        #Cmd_vel
         self.vx=0.0
         self.vy=0.0
         self.vTheta=0.0
@@ -21,11 +22,19 @@ class PygameSim():
         self.y=data.y
         self.theta=data.theta
 
+    def callback2(self,data):
+        self.vx=data.linear.x*np.cos(self.theta)
+        self.vy=data.linear.x*np.sin(self.theta)
+        self.vTheta=data.angular.z
+
     def main(self): #este es el main
         while not rospy.is_shutdown():
             x = float(self.x) #pose en x
             y = float(self.y) #pose en y
             theta = float(self.theta) #angulo
+            vx = float(self.vx) #velocidad en x
+            vy = float(self.vy) #velocidad en y
+            vTheta = float(self.vTheta) #velocidad de rotacion
 
 if __name__=="__main__":
     pygame = PygameSim()
