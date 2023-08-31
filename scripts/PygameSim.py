@@ -2,6 +2,8 @@
 
 import rospy
 import numpy as np
+import pygame
+import sys
 from geometry_msgs.msg import Twist, Pose2D
 
 class PygameSim():
@@ -35,7 +37,35 @@ class PygameSim():
             vx = float(self.vx) #velocidad en x
             vy = float(self.vy) #velocidad en y
             vTheta = float(self.vTheta) #velocidad de rotacion
+            pygame.init()
+
+            size = width, height = 800, 800
+            speed = [vx, vy]
+            black = 0, 0, 0
+
+            screen = pygame.display.set_mode(size)
+
+            rover = pygame.image.load("intro_ball.gif")
+            roverrect = rover.get_rect()
+
+            while 1:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT: sys.exit()
+
+                roverrect = roverrect.move(speed)
+
+                screen.fill(black)
+                screen.blit(rover, roverrect)
+                pygame.display.flip()
+
+            
+
 
 if __name__=="__main__":
     pygame = PygameSim()
     pygame.main()
+    
+
+
+
+
