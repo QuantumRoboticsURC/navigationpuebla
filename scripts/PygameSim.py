@@ -2,11 +2,13 @@
 
 import rospy
 import numpy as np
-import pygame as pg
+import pygame
+import sys
 from geometry_msgs.msg import Twist, Pose2D
 
 class PygameSim():
     def __init__(self):
+        pygame.init()
         rospy.init_node("Pygame",anonymous=True)
         rospy.Subscriber("/odometry",Pose2D,self.callback)
         rospy.Subscriber("/cmd_vel",Twist,self.callback2)
@@ -36,20 +38,20 @@ class PygameSim():
             vx = float(self.vx) #velocidad en x
             vy = float(self.vy) #velocidad en y
             velTheta = float(self.vTheta) #velocidad de rotacion
-            pg.init()
+            
 
             size = width, height = 800, 800
             speed = [vx, vy]
             black = 0, 0, 0
 
-            screen = pg.display.set_mode(size)
+            screen = pygame.display.set_mode(size)
 
-            rover = pg.image.load("auto_r.png")
+            rover = pygame.image.load("auto_r.png")
             roverrect = rover.get_rect()
 
             while 1:
-                for event in pg.event.get():
-                    if event.type == pg.QUIT: sys.exit()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT: sys.exit()
 
                 roverrect = roverrect.move(speed)
 
@@ -58,5 +60,5 @@ class PygameSim():
                 pygame.display.flip()
 
 if __name__=="__main__":
-    pygame = PygameSim()
-    pygame.main()
+    py = PygameSim()
+    py.main()
