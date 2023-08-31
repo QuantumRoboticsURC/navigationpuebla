@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
+import pyzed.sl as sl
 import cv2
 import numpy as np
 import rospy
@@ -24,36 +24,56 @@ class Center():
         #Position Variables
         self.x = 0
         self.y = 0
-        self.midpoint = 0
-        self.midheight = 0
-        #Camera Variables
-        print("cam1") 
-        self.cam_1 = cv2.VideoCapture("/dev/CAMERA_ZED2I")
-        #print("cam2")
-        #self.cam_2 = cv2.VideoCapture("/dev/CAMERA_ARM")
+        self.midpoint = 320
+        self.midheight = 120
+        #
+        self.zed_camera = sl.Camera()
+        self.zed_init_params = sl.InitParameters()
+        self.zed_init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE  # Use PERFORMANCE depth mode
+        self.zed_init_params.camera_resolution = sl.RESOLUTION.HD720
+        err = self.zed_camera.open(self.zed_init_params)
+
+        if err != sl.ERROR_CODE.SUCCESS:
+            exit(1)
+        rospy.sleep(1.0)
+        print("awebo")
+
+        self.zed_runtime_parameters = sl.RuntimeParameters()
+        self.zed_runtime_parameters.sensing_mode = sl.SENSING_MODE.FILL  # Use STANDARD sensing mode
+        #sl.SENSING_MODE.FILL
+        self.zed_runtime_parameters.confidence_threshold = 100
+        self.zed_runtime_parameters.textureness_confidence_threshold = 100
+        self.image_size = self.zed_camera.get_camera_information().camera_resolution
+        self.image_size.width = 640
+        self.image_size.height = 360
+
+        self.image_zed = sl.Mat(self.image_size.width, self.image_size.height, sl.MAT_TYPE.U8_C4)
+        self.depth_image_zed = sl.Mat(self.image_size.width, self.image_size.height, sl.MAT_TYPE.U8_C4)
+        self.point_cloud = sl.Mat()
+        print("cam2")
+        self.cam_2 = cv2.VideoCapture("/dev/CAMERA_ARM")
         #Colors
-        self.blueLow = np.array([106.1,132.5,10], np.uint8)
-        self.blueHigh = np.array([110,255,149.65], np.uint8)
-        self.greenLow = np.array([40,85.95,10], np.uint8)
-        self.greenHigh = np.array([58.2,255,255], np.uint8)
-        self.redLow1 = np.array([3.9,255,142.3], np.uint8)
-        self.redHigh1 = np.array([12.8,255,255], np.uint8)
-        self.redLow2 = np.array([176.57,179.05,17.35], np.uint8)
-        self.redHigh2 = np.array([179,255,142.3], np.uint8)
+        self.blueLow = np.array([95,100,20], np.uint8)
+        self.blueHigh = np.array([125,255,255], np.uint8)
+        self.greenLow = np.array([45,100,20], np.uint8)
+        self.greenHigh = np.array([65,255,255], np.uint8)
+        self.redLow1 = np.array([0,100,20], np.uint8)
+        self.redHigh1 = np.array([5,255,255], np.uint8)
+        self.redLow2 = np.array([170,100,20], np.uint8)
+        self.redHigh2 = np.array([179,255,255], np.uint8)
         #Other variables
         self.rock=""
         self.rocks = []
         self.bridge = CvBridge()
-        self.rate = rospy.Rate(200)
+        self.rate = rospy.Rate(10)
 
     def get_center(self):
         ret,frame = self.cam_1.read()
-        #ret1,frame1 = self.cam_2.read()
+        ret1,frame1 = self.cam_2.read()
         if(ret): 
-            self.midpoint = frame.shape[1]/4
-            self.midheight= frame.shape[0]/2
-       # if(ret1):
-           # self.midheight2 = frame1.shape[2]/2
+            self.midpoint = frame.shape[1]/2
+        if(ret1):
+            self.midheight = frame1.shape[2]/2
         self.pos=2
         self.veces=0
 
@@ -61,12 +81,9 @@ class Center():
         contornos, _ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for c in contornos:
             area = cv2.contourArea(c)
-            if area > 50 and area<500:
+            if area > 3000:
                 moments = cv2.moments(c)
                 if(moments["m00"]==0): moments["m00"]=1
-                pos_y = int(moments["m01"]/moments["m00"])
-                if(pos_y <= self.midheight):
-                    return False
                 self.x = int(moments["m10"]/moments["m00"])
                 self.y = int(moments["m01"]/moments["m00"])
                 nuevoContorno = cv2.convexHull(c)
@@ -78,12 +95,12 @@ class Center():
     def cambiovel(self):
         
         if self.pos==-1 or self.pos==1:
-            #if self.veces<=2:
-             #   self.twist.linear.x=0
-             #   self.twist.angular.z=self.veces*.08*self.pos
-            #else:
-            regla3=(abs(self.x - self.midpoint)-const.ANGLE_ERROR ) * 0.08 / (self.midpoint - const.ANGLE_ERROR ) + 0.08
-            print(regla3)
+            if self.veces<=2:
+                self.twist.linear.x=0
+                self.twist.angular.z=self.veces*.08*self.pos
+            else:
+                regla3=(abs(self.x - self.midpoint)-const.ANGLE_ERROR ) * 0.08 / (self.midpoint - const.ANGLE_ERROR ) + 0.08
+                print(regla3)
                 self.twist.linear.x=0
                 self.twist.angular.z=regla3*self.pos
     
@@ -93,8 +110,9 @@ class Center():
         center_rock = False
         cont = True
         while not rospy.is_shutdown():
-            ret,self.frame = self.cam_1.read()
-            if ret:
+            self.zed_camera.retrieve_image(self.image_zed, sl.VIEW.LEFT, sl.MEM.CPU, self.image_size)
+            self.frame = self.image_ocv = self.image_zed.get_data()
+            if True:
                 #reads frames
                 frameHSV = cv2.cvtColor(self.frame,cv2.COLOR_BGR2HSV)
                 maskBlue = cv2.inRange(frameHSV,self.blueLow,self.blueHigh)
@@ -109,10 +127,6 @@ class Center():
                 frameFlip = cv2.flip(self.frame,1)
                 #Creates an image message with the contours drawn by the draw function
                 img_msg = self.bridge.cv2_to_imgmsg(self.frame,"bgr8")
-                #img_msg_compressed = CompressedImage()
-                #img_msg_compressed.header ="Compressed"
-                #img_msg_compressed=self.bridge.cv2_to_compressed_imgmsg(self.frame)
-                #Checks if the rock has been continuously detected
                 if (b == True):
                     if (cont == True):
                         print("Piedra verde detectada")
@@ -141,20 +155,17 @@ class Center():
                 #Code that Checks if the rock is on the right or on the left. Or if it has already been centered 
 
                 if (self.midpoint*2-self.x+const.ANGLE_ERROR >self.midpoint and self.midpoint*2-self.x-const.ANGLE_ERROR<self.midpoint and detected):
-                    if(self.pos != 0):
-                        self.contador = 1
-                        print(self.contador)
-                    else:           
-                        self.contador +=1
-                        print(self.contador)
-                    self.pos=0
-                    if(self.contador >= 10):
-                        print("Esta en frente")
-                        self.twist.linear.x=.16
-                        self.twist.angular.z=0
-                        time.sleep(1)
-                        self.cmd_vel_pub.publish(self.twist)
-                    center_rock = False #This should be True, currently for testing it is set to False.  
+                    self.pos=1
+                    self.twist.linear.x=0
+                    self.twist.angular.z=0
+                    self.cmd_vel_pub.publish(self.twist)
+                    print("Esta en frente")
+                    self.twist.linear.x=.20
+                    self.twist.angular.z=0
+                    #time.sleep(1)
+                    self.cmd_vel_pub.publish(self.twist)
+                    #time.sleep(2)
+                    center_rock = False #This should be True, currently for testing it is set to False. 
                 elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected):
                     if self.pos != 1:
                         inicio=time.time()
