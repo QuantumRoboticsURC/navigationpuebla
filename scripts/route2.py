@@ -49,7 +49,7 @@ class Route():
 
     def routine(self,param):
         if(param=="line"):
-            self.coordinates=[(3,0)]
+            self.coordinates=[(3,0),(0,0)]
         elif(param=="angle45"):
             self.coordinates=[(3,3)]
         elif(param=="angle90"):
@@ -156,12 +156,16 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
+<<<<<<< HEAD
+        self.routine("line")
+=======
         self.simulation=False
 <<<<<<< HEAD
         self.routine("route")
 =======
         self.routine("zig")
 >>>>>>> 71272bee6f26c7d838c5bc49b53ec16a866e1a4b
+>>>>>>> 2b4ea919bdcdbaad3f172167565993c583c8b2ed
         print(self.coordinates)
         while not rospy.is_shutdown():
             for coordinates in self.coordinates:

@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
+import pyzed.sl as sl
 import cv2
 import numpy as np
 import rospy
 from geometry_msgs.msg import Twist
+from std_msgs.msg import String, Int8,Header
 import time
 import consts as const
-from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image, CompressedImage
 from std_msgs.msg import Bool
 
@@ -19,18 +19,40 @@ class Center():
         self.image_pub = rospy.Publisher("/detection_image_raw",Image,queue_size=10)
         self.image_pub_arm = rospy.Publisher("/detection_arm__image_raw",Image,queue_size=10)
         self.deteccion= rospy.Publisher("/deteccion_roca",Bool,queue_size=10)
-        #self.image_pub_compressed = rospy.Publisher("/detection_image_compressed",CompressedImage,queue_size=10)
-        #self.image_pub_arm_compressed = rospy.Publisher("/detection_arm__image_compressed",CompressedImage,queue_size=10)
         #Position Variables
         self.x = 0
         self.y = 0
-        self.midpoint = 0
-        self.midheight = 0
-        self.contador=0
-        #Camera Variables
-        print("cam1") 
-        self.cam_1 = cv2.VideoCapture("/dev/CAMERA_ZED2I")
-        #print("cam2")
+        self.midpoint = 320
+        self.midheight = 120
+        #
+        self.zed_camera = sl.Camera()
+        self.zed_init_params = sl.InitParameters()
+        self.zed_init_params.depth_mode = sl.DEPTH_MODE.PERFORMANCE  # Use PERFORMANCE depth mode
+        self.zed_init_params.camera_resolution = sl.RESOLUTION.HD720
+        err = self.zed_camera.open(self.zed_init_params)
+
+        if err != sl.ERROR_CODE.SUCCESS:
+            exit(1)
+        rospy.sleep(1.0)
+
+        self.zed_runtime_parameters = sl.RuntimeParameters()
+        self.zed_runtime_parameters.sensing_mode = sl.SENSING_MODE.FILL  # Use STANDARD sensing mode
+        #sl.SENSING_MODE.FILL
+        self.zed_runtime_parameters.confidence_threshold = 100
+        self.zed_runtime_parameters.textureness_confidence_threshold = 100
+        self.image_size = self.zed_camera.get_camera_information().camera_resolution
+        self.image_size.width = 640
+        self.image_size.height = 360
+
+        self.image_zed = sl.Mat(self.image_size.width, self.image_size.height, sl.MAT_TYPE.U8_C4)
+        self.curr_signs_image_msg = Image()
+        self.curr_signs_image_msg_2 = Image()
+        self.curr_signs_image_msg_3 = Image()
+        self.curr_signs_image_msg_4 = Image()
+
+        self.square_filter_trh = 20
+
+
         #self.cam_2 = cv2.VideoCapture("/dev/CAMERA_ARM")
         #Colors
         self.blueLow = np.array([106.1,132.5,10], np.uint8)
@@ -41,21 +63,11 @@ class Center():
         self.redHigh1 = np.array([12.8,255,255], np.uint8)
         self.redLow2 = np.array([176.57,179.05,17.35], np.uint8)
         self.redHigh2 = np.array([179,255,142.3], np.uint8)
+
         #Other variables
         self.rock=""
         self.rocks = []
-        self.bridge = CvBridge()
-        self.rate = rospy.Rate(200)
-
-    def get_center(self):
-        ret,frame = self.cam_1.read()
-        #ret1,frame1 = self.cam_2.read()
-        if(ret): 
-            self.midpoint = frame.shape[1]/2
-        if(ret1):
-            self.midheight = frame1.shape[2]/2
-        self.pos=2
-        self.veces=0
+        self.rate = rospy.Rate(10)
 
     def draw(self,mask,color,frame):
         contornos, _ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -64,39 +76,56 @@ class Center():
             if area > 3000:
                 moments = cv2.moments(c)
                 if(moments["m00"]==0): moments["m00"]=1
-                pos_y = int(moments["m01"]/moments["m00"])
-                if(pos_y <= self.midheight):
-                    return False
                 self.x = int(moments["m10"]/moments["m00"])
                 self.y = int(moments["m01"]/moments["m00"])
                 nuevoContorno = cv2.convexHull(c)
                 cv2.circle(frame,(self.x,self.y), 5,(255,0,0),-1)
-                if self.y>=self.midheight:
-                    return False
                 cv2.drawContours(frame, [nuevoContorno],0,color,3)
                 return True
         return False
-    
+    def cv2_to_imgmsg(self, image, encoding = "bgr8"):
+        #print("cv2_to_imgmsg image shape is:" + str(image.shape))
+        if encoding == "bgr8":
+            self.curr_signs_image_msg.header = Header()
+            self.curr_signs_image_msg.height = image.shape[0]
+            self.curr_signs_image_msg.width = image.shape[1]
+            self.curr_signs_image_msg.encoding = encoding
+            self.curr_signs_image_msg.is_bigendian = 0
+            self.curr_signs_image_msg.step = image.shape[1]*image.shape[2]
+
+            data = np.reshape(image, (self.curr_signs_image_msg.height, self.curr_signs_image_msg.step) )
+            data = np.reshape(image, (self.curr_signs_image_msg.height*self.curr_signs_image_msg.step) )
+            data = list(data)
+            self.curr_signs_image_msg.data = data
+
+            return self.curr_signs_image_msg
+        else:            
+            raise Exception("Error while convering cv image to ros message") 
+
+
+
     def cambiovel(self):
         
         if self.pos==-1 or self.pos==1:
-            #if self.veces<=2:
-             #   self.twist.linear.x=0
-             #   self.twist.angular.z=self.veces*.08*self.pos
-            #else:
-            regla3=(abs(self.x - self.midpoint)-const.ANGLE_ERROR ) * 0.08 / (self.midpoint - const.ANGLE_ERROR ) + 0.08
-            print(regla3)
-            self.twist.linear.x=0
-            self.twist.angular.z=regla3*self.pos
+            if self.veces<=2:
+                self.twist.linear.x=0
+                self.twist.angular.z=self.veces*.08*self.pos
+            else:
+                regla3=(abs(self.x - self.midpoint)-const.ANGLE_ERROR ) * 0.08 / (self.midpoint - const.ANGLE_ERROR ) + 0.08
+                print(regla3)
+                self.twist.linear.x=0
+                self.twist.angular.z=regla3*self.pos
     
     
     def main(self):
-        self.get_center()
         center_rock = False
         cont = True
+        print("B")
         while not rospy.is_shutdown():
-            ret,self.frame = self.cam_1.read()
-            if ret:
+           if(self.zed_camera.grab(self.zed_runtime_parameters)==sl.ERROR_CODE.SUCCESS):
+                self.zed_camera.retrieve_image(self.image_zed, sl.VIEW.LEFT, sl.MEM.CPU, self.image_size)
+                self.frame = self.image_zed.get_data()
+                self.frame = self.frame[:,:,:-1]
                 #reads frames
                 frameHSV = cv2.cvtColor(self.frame,cv2.COLOR_BGR2HSV)
                 maskBlue = cv2.inRange(frameHSV,self.blueLow,self.blueHigh)
@@ -110,11 +139,9 @@ class Center():
                 c = self.draw(maskRed,(0,0,255),self.frame)
                 frameFlip = cv2.flip(self.frame,1)
                 #Creates an image message with the contours drawn by the draw function
-                img_msg = self.bridge.cv2_to_imgmsg(self.frame,"bgr8")
-                #img_msg_compressed = CompressedImage()
-                #img_msg_compressed.header ="Compressed"
-                #img_msg_compressed=self.bridge.cv2_to_compressed_imgmsg(self.frame)
-                #Checks if the rock has been continuously detected
+
+                img_msg = self.cv2_to_imgmsg(self.frame, encoding = "bgr8")
+
                 if (b == True):
                     if (cont == True):
                         print("Piedra verde detectada")
@@ -181,7 +208,7 @@ class Center():
                     twist.angular.z=-0.16
                     '''
                     
-               #This part of the code has to be reviewd once the search routine is determined
+                #This part of the code has to be reviewd once the search routine is determined
                 if(not detected):
                     self.pos=2
                     self.twist.linear.x=0
@@ -196,7 +223,7 @@ class Center():
                         c = self.draw(maskRed,(0,0,255),self.frame1) 
                         detected = a == True or b==True or c ==True
 
-                        img_msg_arm = self.bridge.cv2_to_imgmsg(self.frame,"bgr8")
+                        img_msg_arm = selfs.cv2_to_imgmsg(self.frame,"bgr8")
                         self.image_pub_arm.publish(img_msg_arm)
                         #cv2.imshow('video1',frameFlip)
                         if (self.y+const.DISTANCE_ERROR >self.midheight and self.y-const.DISTANCE_ERROR<self.midheight and detected):
@@ -218,11 +245,12 @@ class Center():
                 self.cmd_vel_pub.publish(self.twist)
                 self.image_pub.publish(img_msg)
                 #self.image_pub_compressed.publish(img_msg_compressed.data)
-                
-            self.rate.sleep()
+            
+        self.rate.sleep()
             #rospy.Rate(10).sleep()  
         cv2.destroyAllWindows()        
 if __name__=="__main__":
     center = Center()
     center.main()
+
 
