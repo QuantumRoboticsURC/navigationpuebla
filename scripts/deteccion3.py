@@ -35,6 +35,7 @@ class Center():
         if err != sl.ERROR_CODE.SUCCESS:
             exit(1)
         rospy.sleep(1.0)
+        print("awebo")
 
         self.zed_runtime_parameters = sl.RuntimeParameters()
         self.zed_runtime_parameters.sensing_mode = sl.SENSING_MODE.FILL  # Use STANDARD sensing mode

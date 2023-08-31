@@ -46,7 +46,7 @@ class Route():
         elif(param=="angle90"):
             self.coordinates=[(0,3)]
         elif(param=="zig"):
-            self.coordinates=[(0,3),(3,0)]
+            self.coordinates=[(3,0),(3,3)]
         elif(param=="route"):
             self.coordinates = [(1,7),(2,7),(2,1),(3,1),(3,7),(4,7),(4,1),(5,1),(5,7),(6,7),(6,1),(7,1),(7,7)]
         else:
@@ -64,7 +64,7 @@ class Route():
                 angle = math.pi/2
             else:
                 angle=3*math.pi/2
-
+        print(angle*180/math.pi)
         if(x1-self.x>0):
             if(not (y1-self.y)>=0):
                 cuadrante = 1
@@ -79,9 +79,14 @@ class Route():
             else:
                 cuadrante =3
                 angle = math.pi+angle
+<<<<<<< HEAD
+        if(angle<0.005 or angle>6.2830):
+           angle=0
+=======
 
         if(angle<0.0005 or angle>6.2830):
             angle=0
+>>>>>>> 2b4ea919bdcdbaad3f172167565993c583c8b2ed
         print(angle*180/math.pi)
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
@@ -131,7 +136,7 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
-        self.routine("angle90")
+        self.routine("angle45")
         print(self.coordinates)
         while not rospy.is_shutdown():
             for coordinates in self.coordinates:
@@ -145,5 +150,6 @@ class Route():
 if __name__=="__main__":
     route = Route()
     route.main()
+
 
 
