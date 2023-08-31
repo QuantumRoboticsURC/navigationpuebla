@@ -44,7 +44,7 @@ class PygameSim():
 
             screen = pg.display.set_mode(size)
 
-            rover = pg.image.load("intro_ball.gif")
+            rover = pg.image.load("auto_r.png")
             roverrect = rover.get_rect()
 
             while 1:
