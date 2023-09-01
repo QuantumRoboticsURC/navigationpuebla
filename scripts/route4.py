@@ -59,21 +59,11 @@ class Route():
         else:
             print("Default")
             self.coordinates = [(1,1)]
-
-    def set_angle(self,x1,y1):
-        angle=np.arctan2((y1-self.posya),x1-self.posxa)
-        print(angle*180/math.pi)
-        if angle<0:
-            angle=abs(angle)+math.pi
-        return angle
     
-    def go_to(self,x1,y1):
-        distance = np.sqrt(pow(x1-self.posxa,2)+pow(y1-self.posya,2))
-        angle = self.set_angle(x1,y1)
-
+    def move_angle(self,angle):
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
-            while(self.theta>angle):
+            while(self.theta>angle and not self.roca_detected):
                 if(self.theta<=angle):
                     self.twist.linear.x=0.0
                     self.twist.angular.z=0
@@ -85,9 +75,8 @@ class Route():
                     self.twist.angular.z=-(abs((self.theta - 0)) * (self.angular_velocity- 0.08) / (2*math.pi - 0) + 0.08)
                     self.pub_cmd.publish(self.twist)
         else:
-
             print("+Moving from angle",self.theta, " to ",angle)
-            while(self.theta<angle): 
+            while(self.theta<angle and not self.roca_detected): 
                 if(self.theta>=angle):
                     self.twist.linear.x=0
                     self.twist.angular.z=0
@@ -99,11 +88,22 @@ class Route():
                     self.twist.angular.z=(abs(self.theta - 0) * (self.angular_velocity - 0.08) / (2*math.pi - 0) + 0.08)
                     self.pub_cmd.publish(self.twist)
 
+    def set_angle(self,x1,y1):
+        angle=np.arctan2((y1-self.posya),x1-self.posxa)
+        print(angle*180/math.pi)
+        if angle<0:
+            angle=abs(angle)+math.pi
+        return angle
+    
+    def go_to(self,x1,y1):
+        distance = np.sqrt(pow(x1-self.posxa,2)+pow(y1-self.posya,2))
+        angle = self.set_angle(x1,y1)
+        self.move_angle(angle)
+
         target_time = self.ODOM_DISTANCE*distance/self.velocity+rospy.get_time()
 
         print("Coordinates: ",self.x," ,",self.y)
         print("Target coordinates: ",x1," ,",y1)
-        
 
         while(target_time>rospy.get_time() and not self.roca_detected):
             self.twist.linear.x=self.velocity
@@ -114,6 +114,12 @@ class Route():
                 self.pub_cmd.publish(self.twist)
             if(self.x>x1 and self.y>y1):
                 break
+            
+        while(self.roca_detected):
+            print("Waiting")
+
+        self.move_angle(angle)
+
         if(self.x<x1 and self.y<y1):
             distance = np.sqrt(pow(x1-self.x,2)+pow(y1-self.y,2))
             target_time = self.ODOM_DISTANCE*distance/self.velocity+rospy.get_time()
