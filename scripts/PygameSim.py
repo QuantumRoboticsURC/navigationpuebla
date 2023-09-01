@@ -32,7 +32,6 @@ class PygameSim():
 
     def main(self): #este es el main
         cont = 0
-        coord = (100,100)
         while not rospy.is_shutdown():
             x = float(self.x) #pose en x
             y = float(self.y) #pose en y
@@ -44,11 +43,10 @@ class PygameSim():
             pygame.init()
             if cont==0:
                 ventana = pygame.display.set_mode((800,800))
-                ventana.fill((0,255,0))
                 cont = cont +1
-            cuadrado = pygame.Rect(coord[0],coord[1],100,100)
+            ventana.fill((0,255,0))
+            cuadrado = pygame.Rect(int(x*100),int(y*100),100,100)
             #clock = pygame.time.Clock()
-            coord = (coord[0]+10,coord[1]+10)
             pygame.draw.rect(ventana,(255,0,0),cuadrado)
             pygame.display.update()
 
