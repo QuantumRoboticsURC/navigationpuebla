@@ -29,16 +29,16 @@ class Center():
         self.contador=0
         #Camera Variables
         print("cam2")
-        self.cam_2 = cv2.VideoCapture(0)
+        self.cam_2 = cv2.VideoCapture("/dev/CAMERA_ARM")
         #Colors
-        self.blueLow = np.array([106.1,132.5,10], np.uint8)
-        self.blueHigh = np.array([110,255,149.65], np.uint8)
-        self.greenLow = np.array([40,85.95,10], np.uint8)
-        self.greenHigh = np.array([58.2,255,255], np.uint8)
-        self.redLow1 = np.array([3.9,255,142.3], np.uint8)
-        self.redHigh1 = np.array([12.8,255,255], np.uint8)
-        self.redLow2 = np.array([176.57,179.05,17.35], np.uint8)
-        self.redHigh2 = np.array([179,255,142.3], np.uint8)
+        self.blueLow = np.array([104.0,10,59], np.uint8)
+        self.blueHigh = np.array([108,255,201.1], np.uint8)
+        self.greenLow = np.array([40,73.7,78.6], np.uint8)
+        self.greenHigh = np.array([61.7,255,255], np.uint8)
+        self.redLow1 = np.array([0,10,10], np.uint8)
+        self.redHigh1 = np.array([3.8,255,255], np.uint8)
+        self.redLow2 = np.array([170,10,10], np.uint8)
+        self.redHigh2 = np.array([179,255,255], np.uint8)
         #Other variables
         self.rock=""
         self.rocks = []
@@ -55,7 +55,7 @@ class Center():
         self.veces=0
 
     def draw(self,mask,color,frame):
-        _,contornos, _ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contornos, _ = cv2.findContours(mask,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for c in contornos:
             area = cv2.contourArea(c)
             if area > 3000:
