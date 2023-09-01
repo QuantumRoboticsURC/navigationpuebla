@@ -17,9 +17,9 @@ class Calibration():
         self.y = 0
         #Camera Variables
         print("cam1") 
-        self.cam_1 = cv2.VideoCapture(0)
+        self.cam_1 = cv2.VideoCapture("/dev/CAMERA_ARM")
         #Colors
-        self.valueColor = "blue"
+        self.valueColor = "green"
         self.hlow = 0 
         self.hhigh = 0
         self.hlow2 = 0 
