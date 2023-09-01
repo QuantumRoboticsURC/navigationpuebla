@@ -32,6 +32,7 @@ class PygameSim():
 
     def main(self): #este es el main
         cont = 0
+        #img = pygame.image.load('/root/catkin_ws/src/navigationpuebla/scripts/racecar.png')
         while not rospy.is_shutdown():
             x = float(self.x) #pose en x
             y = float(self.y) #pose en y
@@ -43,10 +44,13 @@ class PygameSim():
             pygame.init()
             if cont==0:
                 ventana = pygame.display.set_mode((800,800))
+                pygame.display.set_caption("Simulador odometry")
                 cont = cont +1
             ventana.fill((0,255,0))
             cuadrado = pygame.Rect(int(x*100),int(y*100),100,100)
-            #clock = pygame.time.Clock()
+            #ventana.blit(img, (int(x*100),int(y*100)))
+            clock=pygame.time.Clock()
+            clock.tick(24)
             pygame.draw.rect(ventana,(255,0,0),cuadrado)
             pygame.display.update()
 
