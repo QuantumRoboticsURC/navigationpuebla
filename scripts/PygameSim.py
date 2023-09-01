@@ -45,11 +45,11 @@ class PygameSim():
             black = 0, 0, 0
 
             screen = pygame.display.set_mode(size)
-
+            clock = pygame.time.Clock()
             rover = pygame.image.load("intro_ball.gif")
             roverrect = rover.get_rect()
 
-            while 1:
+            while True:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT: sys.exit()
 
@@ -58,6 +58,8 @@ class PygameSim():
                 screen.fill(black)
                 screen.blit(rover, roverrect)
                 pygame.display.flip()
+                pygame.display.update()
+                clock.tick(30)
 
 if __name__=="__main__":
     py = PygameSim()
