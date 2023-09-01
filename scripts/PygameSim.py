@@ -31,6 +31,8 @@ class PygameSim():
         self.vTheta=data.angular.z
 
     def main(self): #este es el main
+        cont = 0
+        coord = (100,100)
         while not rospy.is_shutdown():
             x = float(self.x) #pose en x
             y = float(self.y) #pose en y
@@ -38,28 +40,17 @@ class PygameSim():
             vx = float(self.vx) #velocidad en x
             vy = float(self.vy) #velocidad en y
             velTheta = float(self.vTheta) #velocidad de rotacion
-            
 
-            size = width, height = 800, 800
-            speed = [vx, vy]
-            black = 0, 0, 0
-
-            screen = pygame.display.set_mode(size)
-            clock = pygame.time.Clock()
-            rover = pygame.image.load("intro_ball.gif")
-            roverrect = rover.get_rect()
-
-            while True:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT: sys.exit()
-
-                roverrect = roverrect.move(speed)
-
-                screen.fill(black)
-                screen.blit(rover, roverrect)
-                pygame.display.flip()
-                pygame.display.update()
-                clock.tick(30)
+            pygame.init()
+            if cont==0:
+                ventana = pygame.display.set_mode((800,800))
+                ventana.fill((0,255,0))
+                cont = cont +1
+            cuadrado = pygame.Rect(coord[0],coord[1],100,100)
+            #clock = pygame.time.Clock()
+            coord = (coord[0]+10,coord[1]+10)
+            pygame.draw.rect(ventana,(255,0,0),cuadrado)
+            pygame.display.update()
 
 if __name__=="__main__":
     py = PygameSim()
