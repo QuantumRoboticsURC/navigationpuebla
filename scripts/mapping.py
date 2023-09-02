@@ -63,17 +63,10 @@ class Map():
         while True:
             state = int(self.x)
             state2 = int(self.y)
-            print(state)
-            print(state2)
 
             while (state+1 >= self.x and state2+1 >= self.y):
                 listax.append(self.angle_degrees_x)
                 listay.append(self.angle_degrees_y)
-                #print("holaaaa")
-                print(state)
-                print(state2)
-                print(self.x)
-                print(self.y)
         
         
             promx = sum(listax)/len(listax)

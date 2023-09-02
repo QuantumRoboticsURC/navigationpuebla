@@ -29,9 +29,7 @@ class Odometry():
     
  
     def callback(self,data):
-        self.vx = -data.linear.x*np.cos(self.angle/const.ODOM_ANGLE_ERROR)
-        self.vy = data.linear.x*np.sin(self.angle/const.ODOM_DISTANCE_CORRECTION)
-        self.vx = -data.linear.x*np.cos(self.angle/const.ODOM_ANGLE_CORRECTION)
+        self.vx = data.linear.x*np.cos(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.vy = data.linear.x*np.sin(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.vTheta = data.angular.z
 
@@ -43,24 +41,24 @@ class Odometry():
         self.angle += self.vTheta*(dT)
 
         if(abs(self.angle) > (2*math.pi)):
-            #self.angle = self.angle%2*math.pi
-            self.angle = self.angle-2*math.pi
+            self.angle = self.angle%2*math.pi
         
         if(self.angle<0):
-            self.angle = 2*math.pi+self.angle
+            self.angle = 0
 
-<<<<<<< HEAD
         self.odom.x= float(self.x)
         self.odom.y = float(self.y)
-=======
+
         self.odom.x= float(self.x/const.ODOM_DISTANCE_CORRECTION)
         self.odom.y = float(self.y/const.ODOM_DISTANCE_CORRECTION)
         self.odom.theta = float(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.pub_odom.publish(self.odom)
+        
         self.odometry.x = float(self.x/const.ODOM_DISTANCE_CORRECTION)
         self.odometry.y=float(self.y/const.ODOM_DISTANCE_CORRECTION)
         self.odometry.theta=float(self.angle/const.ODOM_ANGLE_CORRECTION)
         self.pub_odometry.publish(self.odometry)
+
         print("Vx",self.vx," Vy",self.vy," Vtheta",self.vTheta)
         print("Current position:", self.x/const.ODOM_DISTANCE_CORRECTION,",",self.y/const.ODOM_DISTANCE_CORRECTION," at an angle of: ",self.angle/const.ODOM_ANGLE_CORRECTION)
 

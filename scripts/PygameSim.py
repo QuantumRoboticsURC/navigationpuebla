@@ -31,33 +31,31 @@ class PygameSim():
         self.vTheta=data.angular.z
 
     def main(self): #este es el main
+        cont = 0
+        img = pygame.image.load('/root/catkin_ws/src/navigationpuebla/scripts/arrow2.png')
         while not rospy.is_shutdown():
             x = float(self.x) #pose en x
             y = float(self.y) #pose en y
             theta = float(self.theta) #angulo
+            angulo = np.degrees(theta)
+
             vx = float(self.vx) #velocidad en x
             vy = float(self.vy) #velocidad en y
             velTheta = float(self.vTheta) #velocidad de rotacion
-            
 
-            size = width, height = 800, 800
-            speed = [vx, vy]
-            black = 0, 0, 0
-
-            screen = pygame.display.set_mode(size)
-
-            rover = pygame.image.load("auto_r.png")
-            roverrect = rover.get_rect()
-
-            while 1:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT: sys.exit()
-
-                roverrect = roverrect.move(speed)
-
-                screen.fill(black)
-                screen.blit(rover, roverrect)
-                pygame.display.flip()
+            pygame.init()
+            if cont==0:
+                ventana = pygame.display.set_mode((800,800))
+                pygame.display.set_caption("Simulador odometry")
+                cont = cont +1
+            ventana.fill((0,255,0))
+            #cuadrado = pygame.Rect(int(x*100),int(y*100),100,100)
+            imgrot = pygame.transform.rotate(img, -angulo)
+            ventana.blit(imgrot, (int(x*100),int(y*100)))
+            clock=pygame.time.Clock()
+            clock.tick(24)
+            #pygame.draw.rect(ventana,(255,0,0),cuadrado)
+            pygame.display.update()
 
 if __name__=="__main__":
     py = PygameSim()
