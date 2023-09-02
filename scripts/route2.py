@@ -15,13 +15,8 @@ class Route():
         self.twist = Twist()
         self.pub_cmd = rospy.Publisher("/cmd_vel",Twist,queue_size=10)
         self.pub_go_to = rospy.Publisher("/go_to",Bool,queue_size=10)
-<<<<<<< HEAD
-
-        rospy.Subscriber("/odometry",Pose2D,self.callback)
-=======
         self.pub_simulation = rospy.Publisher("/simulation",Bool,queue_size=10)
         rospy.Subscriber("/odom",odom,self.callback)
->>>>>>> 71272bee6f26c7d838c5bc49b53ec16a866e1a4b
         rospy.Subscriber("/deteccion_roca",Bool,self.callback2)
         
 
@@ -156,16 +151,10 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
-<<<<<<< HEAD
+
         self.routine("line")
-=======
+
         self.simulation=False
-<<<<<<< HEAD
-        self.routine("route")
-=======
-        self.routine("zig")
->>>>>>> 71272bee6f26c7d838c5bc49b53ec16a866e1a4b
->>>>>>> 2b4ea919bdcdbaad3f172167565993c583c8b2ed
         print(self.coordinates)
         while not rospy.is_shutdown():
             for coordinates in self.coordinates:
