@@ -289,7 +289,7 @@ class Center():
                     self.joint2.publish(65)
                     center_rock=False
                     center_rock2=False
-                    self.ret1,self.frame1 = self.cam_2.read()
+                    break
                
                 if(not detected):
                     self.pos=2
@@ -304,4 +304,5 @@ class Center():
         cv2.destroyAllWindows()        
 if __name__=="__main__":
     center = Center()
-    center.main()
+    while not rospy.is_shutdown():
+        center.main()
