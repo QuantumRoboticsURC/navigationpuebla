@@ -32,11 +32,13 @@ class PygameSim():
 
     def main(self): #este es el main
         cont = 0
-        #img = pygame.image.load('/root/catkin_ws/src/navigationpuebla/scripts/racecar.png')
+        img = pygame.image.load('/root/catkin_ws/src/navigationpuebla/scripts/arrow.png')
         while not rospy.is_shutdown():
             x = float(self.x) #pose en x
             y = float(self.y) #pose en y
             theta = float(self.theta) #angulo
+            angulo = np.degrees(theta)
+
             vx = float(self.vx) #velocidad en x
             vy = float(self.vy) #velocidad en y
             velTheta = float(self.vTheta) #velocidad de rotacion
@@ -47,11 +49,12 @@ class PygameSim():
                 pygame.display.set_caption("Simulador odometry")
                 cont = cont +1
             ventana.fill((0,255,0))
-            cuadrado = pygame.Rect(int(x*100),int(y*100),100,100)
-            #ventana.blit(img, (int(x*100),int(y*100)))
+            #cuadrado = pygame.Rect(int(x*100),int(y*100),100,100)
+            imgrot = pygame.transform.rotate(img, -angulo)
+            ventana.blit(imgrot, (int(x*100),int(y*100)))
             clock=pygame.time.Clock()
             clock.tick(24)
-            pygame.draw.rect(ventana,(255,0,0),cuadrado)
+            #pygame.draw.rect(ventana,(255,0,0),cuadrado)
             pygame.display.update()
 
 if __name__=="__main__":
