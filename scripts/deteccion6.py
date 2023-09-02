@@ -8,7 +8,7 @@ import time
 import consts as const
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image, CompressedImage
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool,Int32,Float64
 
 class Center():
     def __init__(self):
@@ -19,6 +19,10 @@ class Center():
         self.image_pub = rospy.Publisher("/detection_image_raw",Image,queue_size=10)
         self.image_pub_arm = rospy.Publisher("/detection_arm__image_raw",Image,queue_size=10)
         self.deteccion= rospy.Publisher("/deteccion_roca",Bool,queue_size=10)
+        self.joint1 = rospy.Publisher("arm_teleop/joint1",Float64,queue_size=1)
+        self.joint2 = rospy.Publisher("arm_teleop/joint2_lab",Float64,queue_size=1)
+        self.joint3 = rospy.Publisher("arm_lab/joint3",Int32,queue_size=1)
+        self.gripper = rospy.Publisher("arm_teleop/prism",Float64,queue_size=1)
         #self.image_pub_compressed = rospy.Publisher("/detection_image_compressed",CompressedImage,queue_size=10)
         #self.image_pub_arm_compressed = rospy.Publisher("/detection_arm__image_compressed",CompressedImage,queue_size=10)
         #Position Variables
@@ -85,9 +89,23 @@ class Center():
     
     
     def main(self):
+        time.sleep(.5)
+        print("Home")
+        self.joint3.publish(360)
+        time.sleep(.5)
+        self.joint1.publish(0)
+        self.joint2.publish(130)
+        time.sleep(3)
         self.get_center()
         center_rock = False
+        center_rock2= False
         cont = True
+        print("Intermediate")
+        self.joint3.publish(370)
+        time.sleep(.5)
+        self.joint1.publish(0)
+        self.joint2.publish(65)
+
         while not rospy.is_shutdown():
             self.ret1,self.frame1 = self.cam_2.read()
             if self.ret1:
@@ -165,12 +183,7 @@ class Center():
                         self.twist.angular.z=0
                         self.cmd_vel_pub.publish(self.twist)
                         print("Esta en frente")
-                        self.twist.linear.x=.20
-                        self.twist.angular.z=0
-                        #time.sleep(1)
-                        self.cmd_vel_pub.publish(self.twist)
-                        #time.sleep(2)
-                        break 
+                        center_rock2=True
                     elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected):
                         if self.pos != 1:
                             inicio=time.time()
@@ -198,6 +211,84 @@ class Center():
                         twist.angular.z=-0.16
                         '''
                     
+                if center_rock2:
+                    self.gripper.publish(-1)
+                    time.sleep(4)
+                    self.gripper.publish(0)
+                    print("Ground Ex") #Probar en la lap de chevez con
+                    self.joint3.publish(415)
+                    time.sleep(.5)
+                    self.joint1.publish(0) #valores de ground normal
+                    self.joint2.publish(5)
+                    time.sleep(10)
+                    self.gripper.publish(1)
+                    time.sleep(4)
+                    self.gripper.publish(0)
+
+                    print("Intermediate")
+                    self.joint1.publish(0)
+                    self.joint2.publish(65)
+                    time.sleep(2)
+                    self.joint3.publish(370)
+
+                    time.sleep(3)
+
+                    print("Home")
+                    self.joint3.publish(360)
+                    time.sleep(.5)
+                    self.joint1.publish(0)
+                    self.joint2.publish(130)
+
+                    time.sleep(5)
+
+                    print("Caja")
+                    self.joint3.publish(360)
+                    time.sleep(.5)
+                    self.joint1.publish(85)
+                    self.joint2.publish(130)
+
+                    time.sleep(10)
+                    print("caja2")
+                    self.joint1.publish(85)
+                    self.joint2.publish(160)
+                    time.sleep(2)
+                    self.joint3.publish(350)
+                    time.sleep(.5)
+
+                    self.gripper.publish(-1)
+                    time.sleep(5)
+                    self.gripper.publish(0)
+
+                    self.gripper.publish(1)
+                    time.sleep(7)
+                    self.gripper.publish(0)
+
+                    print("Home")
+                    self.joint3.publish(360)
+                    time.sleep(.5)
+                    self.joint1.publish(0)
+                    self.joint2.publish(130)
+
+                    time.sleep(10)
+
+                    time.sleep(.5)
+                    print("Home")
+                    self.joint3.publish(360)
+                    time.sleep(.5)
+                    self.joint1.publish(0)
+                    self.joint2.publish(130)
+                    time.sleep(3)
+                    self.get_center()
+                    center_rock = False
+                    center_rock2= False
+                    cont = True
+                    print("Intermediate")
+                    self.joint3.publish(370)
+                    time.sleep(.5)
+                    self.joint1.publish(0)
+                    self.joint2.publish(65)
+                    center_rock=False
+                    center_rock2=False
                #This part of the code has to be reviewd once the search routine is determined
                 if(not detected):
                     self.pos=2
