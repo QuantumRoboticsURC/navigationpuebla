@@ -289,7 +289,8 @@ class Center():
                     self.joint2.publish(65)
                     center_rock=False
                     center_rock2=False
-               #This part of the code has to be reviewd once the search routine is determined
+                    self.ret1,self.frame1 = self.cam_2.read()
+               
                 if(not detected):
                     self.pos=2
                 #If the rock has already been centered with the first camera, a second centering process starts with the arm camera
