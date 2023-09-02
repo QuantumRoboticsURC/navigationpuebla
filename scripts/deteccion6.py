@@ -303,6 +303,6 @@ class Center():
             #rospy.Rate(10).sleep()  
         cv2.destroyAllWindows()        
 if __name__=="__main__":
-    center = Center()
     while not rospy.is_shutdown():
+        center = Center()
         center.main()
