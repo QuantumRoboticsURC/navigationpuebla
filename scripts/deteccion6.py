@@ -31,13 +31,13 @@ class Center():
         print("cam2")
         self.cam_2 = cv2.VideoCapture("/dev/CAMERA_ARM")
         #Colors
-        self.blueLow = np.array([104.0,10,59], np.uint8)
-        self.blueHigh = np.array([108,255,201.1], np.uint8)
-        self.greenLow = np.array([40,73.7,78.6], np.uint8)
-        self.greenHigh = np.array([61.7,255,255], np.uint8)
-        self.redLow1 = np.array([0,10,10], np.uint8)
-        self.redHigh1 = np.array([3.8,255,255], np.uint8)
-        self.redLow2 = np.array([170,10,10], np.uint8)
+        self.blueLow = np.array([95.0,115.35,63.9], np.uint8)
+        self.blueHigh = np.array([113,255.0,255.0], np.uint8)
+        self.greenLow = np.array([45.6,63.9,29.6], np.uint8)
+        self.greenHigh = np.array([75.0,255,255], np.uint8)
+        self.redLow1 = np.array([0.0,117.8,10.0], np.uint8)
+        self.redHigh1 = np.array([4.6,255,255], np.uint8)
+        self.redLow2 = np.array([170,117.8,10], np.uint8)
         self.redHigh2 = np.array([179,255,255], np.uint8)
         #Other variables
         self.rock=""
