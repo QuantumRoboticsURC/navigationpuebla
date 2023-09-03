@@ -99,7 +99,6 @@ class Route():
         distance = np.sqrt(pow(x1-self.posxa,2)+pow(y1-self.posya,2))
         angle = self.set_angle(x1,y1)
         self.move_angle(angle)
-
         target_time = self.ODOM_DISTANCE*distance/self.velocity+rospy.get_time()
 
         print("Coordinates: ",self.x," ,",self.y)
@@ -109,10 +108,7 @@ class Route():
             self.twist.linear.x=self.velocity
             self.twist.angular.z=0
             self.pub_cmd.publish(self.twist)
-            if((self.x>x1-0.5 and self.y>y1-0.5)):
-                self.twist.linear.x = self.velocity/4
-                self.pub_cmd.publish(self.twist)
-            if(self.x>x1 and self.y>y1):
+            if((self.x >x1-const.POSITION_ERROR and self.x<x1+const.POSITION_ERROR) and (self.y>y1-const.POSITION_ERROR and self.y<y1+const.POSITION_ERROR)):
                 break
             
         while(self.roca_detected):
@@ -127,10 +123,7 @@ class Route():
                 self.twist.linear.x=self.velocity
                 self.twist.angular.z=0
                 self.pub_cmd.publish(self.twist)
-                if((self.x>x1-0.5 and self.y>y1-0.5)):
-                    self.twist.linear.x = self.velocity/4
-                    self.pub_cmd.publish(self.twist)
-                if(self.x>x1 and self.y>y1):
+                if((self.x >x1-const.POSITION_ERROR and self.x<x1+const.POSITION_ERROR) and (self.y>y1-const.POSITION_ERROR and self.y<y1+const.POSITION_ERROR)):
                     break
 
         self.arrived=False
