@@ -52,8 +52,8 @@ class Center():
 
     def callback(self,data):
         self.arm = data.data
+
     def get_center(self):
-        
         ret1,frame1 = self.cam_2.read()
         if(ret1):
             self.midpoint = frame1.shape[1]/2
@@ -215,84 +215,11 @@ class Center():
                         '''
                     
                 if center_rock2:
-                    self.gripper.publish(-1)
-                    time.sleep(4)
-                    self.gripper.publish(0)
-                    print("Ground Ex") #Probar en la lap de chevez con
-                    self.joint3.publish(415)
-                    time.sleep(.5)
-                    self.joint1.publish(0) #valores de ground normal
-                    self.joint2.publish(5)
-                    time.sleep(10)
-                    self.gripper.publish(1)
-                    time.sleep(4)
-                    self.gripper.publish(0)
-
-                    print("Intermediate")
-                    self.joint1.publish(0)
-                    self.joint2.publish(65)
-                    time.sleep(2)
-                    self.joint3.publish(370)
-
-                    time.sleep(3)
-
-                    print("Home")
-                    self.joint3.publish(360)
-                    time.sleep(.5)
-                    self.joint1.publish(0)
-                    self.joint2.publish(130)
-
-                    time.sleep(5)
-
-                    print("Caja")
-                    self.joint3.publish(360)
-                    time.sleep(.5)
-                    self.joint1.publish(85)
-                    self.joint2.publish(130)
-
-                    time.sleep(10)
-                    print("caja2")
-                    self.joint1.publish(85)
-                    self.joint2.publish(160)
-                    time.sleep(2)
-                    self.joint3.publish(350)
-                    time.sleep(.5)
-
-                    self.gripper.publish(-1)
-                    time.sleep(5)
-                    self.gripper.publish(0)
-
-                    self.gripper.publish(1)
-                    time.sleep(7)
-                    self.gripper.publish(0)
-
-                    print("Home")
-                    self.joint3.publish(360)
-                    time.sleep(.5)
-                    self.joint1.publish(0)
-                    self.joint2.publish(130)
-
-                    time.sleep(10)
-
-                    time.sleep(.5)
-                    print("Home")
-                    self.joint3.publish(360)
-                    time.sleep(.5)
-                    self.joint1.publish(0)
-                    self.joint2.publish(130)
-                    time.sleep(3)
-                    self.get_center()
-                    center_rock = False
-                    center_rock2= False
-                    cont = True
-                    print("Intermediate")
-                    self.joint3.publish(370)
-                    time.sleep(.5)
-                    self.joint1.publish(0)
-                    self.joint2.publish(65)
+                    self.move_arm.publish(center_rock2)
+                    
+                if not self.arm:
                     center_rock=False
                     center_rock2=False
-                    break
                
                 if(not detected):
                     self.pos=2
