@@ -2,6 +2,7 @@
 import rospy
 from std_msgs.msg import Bool,Float64,Int32
 import time
+from geometry_msgs.msg import Twist
 class ArmCollection():
     def __init__(self):
         rospy.init_node("Arm_collection",anonymous=True)
@@ -11,12 +12,31 @@ class ArmCollection():
         self.joint3 = rospy.Publisher("arm_lab/joint3",Int32,queue_size=1)
         self.gripper = rospy.Publisher("arm_teleop/prism",Float64,queue_size=1)
         rospy.Subscriber("/arm_movement",Bool,self.callback)
+        self.cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1)
+        self.twist = Twist()
         self.arm = False
-
     def callback(self,data):
         self.arm = data.data
 
+    def home(self):
+        time.sleep(.5)
+        print("Home")
+        self.joint3.publish(360)
+        time.sleep(.5)
+        self.joint1.publish(0)
+        self.joint2.publish(130)
+        time.sleep(3)
+        print("Intermediate")
+        self.joint3.publish(370)
+        time.sleep(.5)
+        self.joint1.publish(0)
+        self.joint2.publish(65)
+
+
     def main(self):
+        self.twist.linear.x=0
+        self.twist.angular.z = 0
+        self.cmd_vel_pub.publish(self.twist)
         self.gripper.publish(-1)
         time.sleep(4)
         self.gripper.publish(0)
@@ -83,7 +103,6 @@ class ArmCollection():
         self.joint1.publish(0)
         self.joint2.publish(130)
         time.sleep(3)
-        self.get_center()
         print("Intermediate")
         self.joint3.publish(370)
         time.sleep(.5)
@@ -93,6 +112,8 @@ class ArmCollection():
 
 if __name__=="__main__":
     arm = ArmCollection()
+    arm.home()
+    print("ENTER MAIN")
     while( not rospy.is_shutdown()):
         if(arm.arm):
             arm.main()

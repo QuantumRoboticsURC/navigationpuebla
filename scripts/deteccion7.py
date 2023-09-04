@@ -18,7 +18,7 @@ class Center():
         self.cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1)
         self.twist = Twist()
         self.image_pub = rospy.Publisher("/detection_image_raw",Image,queue_size=10)
-        self.image_pub_arm = rospy.Publisher("/detection_arm__image_raw",Image,queue_size=10)
+        self.image_pub_arm = rospy.Publisher("/detection_arm_image_raw",Image,queue_size=10)
         self.deteccion= rospy.Publisher("/deteccion_roca",Bool,queue_size=10)
         self.joint1 = rospy.Publisher("arm_teleop/joint1",Float64,queue_size=1)
         self.joint2 = rospy.Publisher("arm_teleop/joint2_lab",Float64,queue_size=1)
@@ -92,22 +92,11 @@ class Center():
     
     
     def main(self):
-        time.sleep(.5)
-        print("Home")
-        self.joint3.publish(360)
-        time.sleep(.5)
-        self.joint1.publish(0)
-        self.joint2.publish(130)
-        time.sleep(3)
         self.get_center()
         center_rock = False
         center_rock2= False
         cont = True
-        print("Intermediate")
-        self.joint3.publish(370)
-        time.sleep(.5)
-        self.joint1.publish(0)
-        self.joint2.publish(65)
+        print("ENTER MAIN")
 
         while not rospy.is_shutdown():
             self.ret1,self.frame1 = self.cam_2.read()
@@ -160,19 +149,19 @@ class Center():
                 #cv2.imshow('video1',frameFlip)
                 print(self.midheight)
                 print(self.y)
-                if (self.y+const.ANGLE_ERROR >self.midheight and self.y-const.ANGLE_ERROR<self.midheight and detected):
+                if (self.y+const.ANGLE_ERROR >self.midheight and self.y-const.ANGLE_ERROR<self.midheight and detected and not center_rock2):
                         print("Esta en frente")
                         self.twist.linear.x=0
                         self.twist.angular.z=0
                         print("Eureka")
                         cv2.destroyAllWindows()
                         center_rock=True   
-                elif (self.midheight - const.ANGLE_ERROR>self.y and detected):
+                elif (self.midheight - const.ANGLE_ERROR>self.y and detected and not center_rock2):
                         print("Esta arriba")
                         self.twist.linear.x=-0.08
                         self.twist.angular.z=0
                         center_rock=False
-                elif (self.y >self.midheight + const.ANGLE_ERROR and detected):
+                elif (self.y >self.midheight + const.ANGLE_ERROR and detected and not center_rock2):
                         print("Esta abajo")
                         self.twist.linear.x=0.08
                         self.twist.angular.z=0
@@ -180,14 +169,14 @@ class Center():
 
 
                 if center_rock:
-                    if (self.midpoint*2-self.x+const.ANGLE_ERROR >self.midpoint and self.midpoint*2-self.x-const.ANGLE_ERROR<self.midpoint and detected):
+                    if (self.midpoint*2-self.x+const.ANGLE_ERROR >self.midpoint and self.midpoint*2-self.x-const.ANGLE_ERROR<self.midpoint and detected) and not center_rock2:
                         self.pos=1
                         self.twist.linear.x=0
                         self.twist.angular.z=0
                         self.cmd_vel_pub.publish(self.twist)
                         print("Esta en frente")
                         center_rock2=True
-                    elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected):
+                    elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected and not center_rock2):
                         if self.pos != 1:
                             inicio=time.time()
                             self.veces=0
@@ -200,7 +189,7 @@ class Center():
                         twist.linear.x=0.0
                         twist.angular.z=-0.16
                         '''
-                    elif ((2*self.midpoint-self.x) +const.ANGLE_ERROR >self.midpoint and detected):
+                    elif ((2*self.midpoint-self.x) +const.ANGLE_ERROR >self.midpoint and detected and not center_rock2):
                         if self.pos != -1:
                             inicio=time.time()
                             self.veces=0
@@ -216,10 +205,14 @@ class Center():
                     
                 if center_rock2:
                     self.move_arm.publish(center_rock2)
+                    self.twist.linear.x=0
+                    self.twist.angular.z=0
+                    self.cmd_vel_pub.publish(self.twist)
                     
                 if not self.arm:
                     center_rock=False
                     center_rock2=False
+                    self.move_arm.publish(False)
                
                 if(not detected):
                     self.pos=2
