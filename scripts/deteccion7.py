@@ -72,8 +72,6 @@ class Center():
                 self.y = int(moments["m01"]/moments["m00"])
                 nuevoContorno = cv2.convexHull(c)
                 cv2.circle(frame,(self.x,self.y), 5,(255,0,0),-1)
-                #if self.y>=self.midheight:
-                    #return False
                 cv2.drawContours(frame, [nuevoContorno],0,color,3)
                 return True
         return False
@@ -81,10 +79,6 @@ class Center():
     def cambiovel(self):
         
         if self.pos==-1 or self.pos==1:
-            #if self.veces<=2:
-             #   self.twist.linear.x=0
-             #   self.twist.angular.z=self.veces*.08*self.pos
-            #else:
             regla3=(abs(self.x - self.midpoint)-const.ANGLE_ERROR ) * 0.08 / (self.midpoint - const.ANGLE_ERROR ) + 0.08
             print(regla3)
             self.twist.linear.x=0
@@ -115,9 +109,6 @@ class Center():
                 frameFlip = cv2.flip(self.frame1,1)
                 #Creates an image message with the contours drawn by the draw function
                 img_msg = self.bridge.cv2_to_imgmsg(self.frame1,"bgr8")
-                #img_msg_compressed = CompressedImage()
-                #img_msg_compressed.header ="Compressed"
-                #img_msg_compressed=self.bridge.cv2_to_compressed_imgmsg(self.frame)
                 #Checks if the rock has been continuously detected
                 if (b == True):
                     if (cont == True):
@@ -149,67 +140,68 @@ class Center():
                 #cv2.imshow('video1',frameFlip)
                 print(self.midheight)
                 print(self.y)
-                if (self.y+const.ANGLE_ERROR >self.midheight and self.y-const.ANGLE_ERROR<self.midheight and detected and not center_rock2):
+                if(self.arm==False):
+                    if (self.y+const.ANGLE_ERROR >self.midheight and self.y-const.ANGLE_ERROR<self.midheight and detected):
                         print("Esta en frente")
                         self.twist.linear.x=0
                         self.twist.angular.z=0
                         print("Eureka")
                         cv2.destroyAllWindows()
                         center_rock=True   
-                elif (self.midheight - const.ANGLE_ERROR>self.y and detected and not center_rock2):
+                    elif (self.midheight - const.ANGLE_ERROR>self.y and detected):
                         print("Esta arriba")
-                        self.twist.linear.x=-0.08
-                        self.twist.angular.z=0
-                        center_rock=False
-                elif (self.y >self.midheight + const.ANGLE_ERROR and detected and not center_rock2):
-                        print("Esta abajo")
                         self.twist.linear.x=0.08
                         self.twist.angular.z=0
                         center_rock=False
-
-
-                if center_rock:
-                    if (self.midpoint*2-self.x+const.ANGLE_ERROR >self.midpoint and self.midpoint*2-self.x-const.ANGLE_ERROR<self.midpoint and detected) and not center_rock2:
-                        self.pos=1
-                        self.twist.linear.x=0
+                    elif (self.y >self.midheight + const.ANGLE_ERROR and detected):
+                        print("Esta abajo")
+                        self.twist.linear.x=-0.08
                         self.twist.angular.z=0
-                        self.cmd_vel_pub.publish(self.twist)
-                        print("Esta en frente")
-                        center_rock2=True
-                    elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected and not center_rock2):
-                        if self.pos != 1:
-                            inicio=time.time()
-                            self.veces=0
-                        else:
-                            self.veces=time.time()-inicio
-                        self.pos=1
-                        print("Esta a la izquierda")
-                        self.cambiovel()
-                        '''
-                        twist.linear.x=0.0
-                        twist.angular.z=-0.16
-                        '''
-                    elif ((2*self.midpoint-self.x) +const.ANGLE_ERROR >self.midpoint and detected and not center_rock2):
-                        if self.pos != -1:
-                            inicio=time.time()
-                            self.veces=0
-                        else:
-                            self.veces=time.time()-inicio
-                        self.pos=-1
-                        print("Esta a la derecha")
-                        self.cambiovel()
-                        '''
-                        twist.linear.x=0.0
-                        twist.angular.z=-0.16
-                        '''
+                        center_rock=False
+
+
+                    if center_rock:
+                        if (self.midpoint*2-self.x+const.ANGLE_ERROR >self.midpoint and self.midpoint*2-self.x-const.ANGLE_ERROR<self.midpoint and detected):
+                            self.pos=1
+                            self.twist.linear.x=0
+                            self.twist.angular.z=0
+                            self.cmd_vel_pub.publish(self.twist)
+                            print("Esta en frente")
+                            center_rock2=True
+                        elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected):
+                            if self.pos != 1:
+                                inicio=time.time()
+                                self.veces=0
+                            else:
+                                self.veces=time.time()-inicio
+                            self.pos=1
+                            print("Esta a la izquierda")
+                            self.cambiovel()
+                            '''
+                            twist.linear.x=0.0
+                            twist.angular.z=-0.16
+                            '''
+                        elif ((2*self.midpoint-self.x) +const.ANGLE_ERROR >self.midpoint and detected):
+                            if self.pos != -1:
+                                inicio=time.time()
+                                self.veces=0
+                            else:
+                                self.veces=time.time()-inicio
+                            self.pos=-1
+                            print("Esta a la derecha")
+                            self.cambiovel()
+                            '''
+                            twist.linear.x=0.0
+                            twist.angular.z=-0.16
+                            '''
                     
                 if center_rock2:
-                    self.move_arm.publish(center_rock2)
+                    self.move_arm.publish(True)
                     self.twist.linear.x=0
                     self.twist.angular.z=0
                     self.cmd_vel_pub.publish(self.twist)
                     
-                if not self.arm:
+                if self.arm == False:
                     center_rock=False
                     center_rock2=False
                     self.move_arm.publish(False)
@@ -226,6 +218,6 @@ class Center():
             #rospy.Rate(10).sleep()  
         cv2.destroyAllWindows()        
 if __name__=="__main__":
+    center = Center()
     while not rospy.is_shutdown():
-        center = Center()
         center.main()
