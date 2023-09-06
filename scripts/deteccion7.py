@@ -101,7 +101,7 @@ class Center():
                 #cv2.imshow('video',frameFlip)
                 #cv2.imshow('video1',frameFlip)
                 if(not center_rock2):
-                    print("ENTER")
+                    #print("ENTER")
                     self.move_arm.publish(False)
                     frameHSV = cv2.cvtColor(self.frame1,cv2.COLOR_BGR2HSV)
                     maskBlue = cv2.inRange(frameHSV,self.blueLow,self.blueHigh)
@@ -195,7 +195,7 @@ class Center():
                             '''
                     
                 if center_rock2:
-                    print("DONT ENTER")
+                    #print("DONT ENTER")
                     self.move_arm.publish(True)
                     self.deteccion.publish(True)
                     self.twist.linear.x=0
