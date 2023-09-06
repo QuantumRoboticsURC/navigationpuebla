@@ -38,8 +38,8 @@ class Center():
         #Colors
         self.blueLow = np.array([95.0,115.35,63.9], np.uint8)
         self.blueHigh = np.array([113,255.0,255.0], np.uint8)
-        self.greenLow = np.array([45.6,63.9,29.6], np.uint8)
-        self.greenHigh = np.array([75.0,255,255], np.uint8)
+        #self.greenLow = np.array([45.6,63.9,29.6], np.uint8)
+        #self.greenHigh = np.array([75.0,255,255], np.uint8)
         self.redLow1 = np.array([0.0,117.8,10.0], np.uint8)
         self.redHigh1 = np.array([4.6,255,255], np.uint8)
         self.redLow2 = np.array([170,117.8,10], np.uint8)
@@ -105,13 +105,14 @@ class Center():
                     self.move_arm.publish(False)
                     frameHSV = cv2.cvtColor(self.frame1,cv2.COLOR_BGR2HSV)
                     maskBlue = cv2.inRange(frameHSV,self.blueLow,self.blueHigh)
-                    maskGreen = cv2.inRange(frameHSV,self.greenLow,self.greenHigh)
+                    #maskGreen = cv2.inRange(frameHSV,self.greenLow,self.greenHigh)
                     maskRed1= cv2.inRange(frameHSV,self.redLow1, self.redHigh1)
                     maskReed2 = cv2.inRange(frameHSV,self.redLow2,self.redHigh2)
                     maskRed = cv2.add(maskRed1,maskReed2)
                     #Checks if a rock has been detected 
                     a =self.draw(maskBlue,(255,0,0),self.frame1)
-                    b = self.draw(maskGreen,(0,255,0),self.frame1)
+                    #b = self.draw(maskGreen,(0,255,0),self.frame1)
+                    b=False
                     c = self.draw(maskRed,(0,0,255),self.frame1)
                     frameFlip = cv2.flip(self.frame1,1)
                     #Creates an image message with the contours drawn by the draw function
