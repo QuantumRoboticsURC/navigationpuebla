@@ -32,7 +32,7 @@ class PygameSim():
 
     def main(self): #este es el main
         cont = 0
-        img = pygame.image.load('/root/catkin_ws/src/navigationpuebla/scripts/arrow2.png')
+        img = pygame.image.load('arrow2.png')
         while not rospy.is_shutdown():
             x = float(self.x) #pose en x
             y = float(self.y) #pose en y

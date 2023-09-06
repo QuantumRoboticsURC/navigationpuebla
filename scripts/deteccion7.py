@@ -19,12 +19,12 @@ class Center():
         self.twist = Twist()
         self.image_pub = rospy.Publisher("/detection_image_raw",Image,queue_size=10)
         self.image_pub_arm = rospy.Publisher("/detection_arm_image_raw",Image,queue_size=10)
-        self.deteccion= rospy.Publisher("/deteccion_roca",Bool,queue_size=10)
+        self.deteccion= rospy.Publisher("/deteccion_roca",Bool,queue_size=1)
         self.joint1 = rospy.Publisher("arm_teleop/joint1",Float64,queue_size=1)
         self.joint2 = rospy.Publisher("arm_teleop/joint2_lab",Float64,queue_size=1)
         self.joint3 = rospy.Publisher("arm_lab/joint3",Int32,queue_size=1)
         self.gripper = rospy.Publisher("arm_teleop/prism",Float64,queue_size=1)
-        self.move_arm = rospy.Publisher("/arm_movement",Bool,queue_size=10)
+        self.move_arm = rospy.Publisher("/arm_movement",Bool,queue_size=1)
         #Position Variables
         self.x = 0
         self.y = 0
@@ -48,7 +48,7 @@ class Center():
         self.rock=""
         self.rocks = []
         self.bridge = CvBridge()
-        self.rate = rospy.Rate(200)
+        self.rate = rospy.Rate(30)
 
     def callback(self,data):
         self.arm = data.data
@@ -90,57 +90,55 @@ class Center():
         center_rock = False
         center_rock2= False
         cont = True
+        count = 0
         print("ENTER MAIN")
 
         while not rospy.is_shutdown():
             self.ret1,self.frame1 = self.cam_2.read()
             if self.ret1:
-                #reads frames
-                frameHSV = cv2.cvtColor(self.frame1,cv2.COLOR_BGR2HSV)
-                maskBlue = cv2.inRange(frameHSV,self.blueLow,self.blueHigh)
-                maskGreen = cv2.inRange(frameHSV,self.greenLow,self.greenHigh)
-                maskRed1= cv2.inRange(frameHSV,self.redLow1, self.redHigh1)
-                maskReed2 = cv2.inRange(frameHSV,self.redLow2,self.redHigh2)
-                maskRed = cv2.add(maskRed1,maskReed2)
-                #Checks if a rock has been detected 
-                a =self.draw(maskBlue,(255,0,0),self.frame1)
-                b = self.draw(maskGreen,(0,255,0),self.frame1)
-                c = self.draw(maskRed,(0,0,255),self.frame1)
-                frameFlip = cv2.flip(self.frame1,1)
-                #Creates an image message with the contours drawn by the draw function
-                img_msg = self.bridge.cv2_to_imgmsg(self.frame1,"bgr8")
-                #Checks if the rock has been continuously detected
-                if (b == True):
-                    if (cont == True):
-                        print("Piedra verde detectada")
-                        cont = False
-                        rock = "Green"
-                elif (a == True):
-                    if (cont == True):
-                        print("Piedra azul detectada")
-                        cont = False
-                        rock = "Blue"
-                elif (c == True):
-                    if (cont == True):
-                        print("Piedra roja detectada")
-                        cont = False
-                        rock = "Red"
-                else:
-                    cont = True
-                
-                detected = a == True or b==True or c ==True
-
-                self.deteccion.publish(detected)
-
+     
                 #Shows the image, this should only be run on the personal PC. Running it on the jetson will cause problems
                 #cv2.imshow('video',frameFlip)
-
-                img_msg_arm = self.bridge.cv2_to_imgmsg(self.frame1,"bgr8")
-                self.image_pub_arm.publish(img_msg_arm)
                 #cv2.imshow('video1',frameFlip)
-                print(self.midheight)
-                print(self.y)
-                if(self.arm==False):
+                if(not center_rock2):
+                    print("ENTER")
+                    self.move_arm.publish(False)
+                    frameHSV = cv2.cvtColor(self.frame1,cv2.COLOR_BGR2HSV)
+                    maskBlue = cv2.inRange(frameHSV,self.blueLow,self.blueHigh)
+                    maskGreen = cv2.inRange(frameHSV,self.greenLow,self.greenHigh)
+                    maskRed1= cv2.inRange(frameHSV,self.redLow1, self.redHigh1)
+                    maskReed2 = cv2.inRange(frameHSV,self.redLow2,self.redHigh2)
+                    maskRed = cv2.add(maskRed1,maskReed2)
+                    #Checks if a rock has been detected 
+                    a =self.draw(maskBlue,(255,0,0),self.frame1)
+                    b = self.draw(maskGreen,(0,255,0),self.frame1)
+                    c = self.draw(maskRed,(0,0,255),self.frame1)
+                    frameFlip = cv2.flip(self.frame1,1)
+                    #Creates an image message with the contours drawn by the draw function
+                    img_msg = self.bridge.cv2_to_imgmsg(self.frame1,"bgr8")
+                    #Checks if the rock has been continuously detected
+                    if (b == True):
+                        if (cont == True):
+                            print("Piedra verde detectada")
+                            cont = False
+                            rock = "Green"
+                    elif (a == True):
+                        if (cont == True):
+                            print("Piedra azul detectada")
+                            cont = False
+                            rock = "Blue"
+                    elif (c == True):
+                        if (cont == True):
+                            print("Piedra roja detectada")
+                            cont = False
+                            rock = "Red"
+                    else:
+                        cont = True
+                    
+                    detected = a == True or b==True or c ==True
+
+                    self.deteccion.publish(detected)
+
                     if (self.y+const.ANGLE_ERROR >self.midheight and self.y-const.ANGLE_ERROR<self.midheight and detected):
                         print("Esta en frente")
                         self.twist.linear.x=0
@@ -165,7 +163,7 @@ class Center():
                             self.pos=1
                             self.twist.linear.x=0
                             self.twist.angular.z=0
-                            self.cmd_vel_pub.publish(self.twist)
+                            #self.cmd_vel_pub.publish(self.twist)
                             print("Esta en frente")
                             center_rock2=True
                         elif (self.midpoint>(2*self.midpoint-self.x) -const.ANGLE_ERROR and detected):
@@ -196,22 +194,32 @@ class Center():
                             '''
                     
                 if center_rock2:
+                    print("DONT ENTER")
                     self.move_arm.publish(True)
+                    self.deteccion.publish(True)
                     self.twist.linear.x=0
                     self.twist.angular.z=0
-                    self.cmd_vel_pub.publish(self.twist)
+                    #self.cmd_vel_pub.publish(self.twist)
+                    count+=1
+                    print(count)
                     
-                if self.arm == False:
+                if count>1550:
+                    count=0
                     center_rock=False
                     center_rock2=False
                     self.move_arm.publish(False)
+                    print("Remember me though I have to say goodbye ",self.arm)
+                    self.deteccion.publish(False)
                
                 if(not detected):
                     self.pos=2
                 #If the rock has already been centered with the first camera, a second centering process starts with the arm camera
 
-                self.cmd_vel_pub.publish(self.twist)
+                #self.cmd_vel_pub.publish(self.twist)
+                img_msg = self.bridge.cv2_to_imgmsg(self.frame1,"bgr8")
                 self.image_pub.publish(img_msg)
+                img_msg_arm = self.bridge.cv2_to_imgmsg(self.frame1,"bgr8")
+                self.image_pub_arm.publish(img_msg_arm)
                 #self.image_pub_compressed.publish(img_msg_compressed.data)
                 
             self.rate.sleep()

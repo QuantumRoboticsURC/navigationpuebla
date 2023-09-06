@@ -21,11 +21,11 @@ class Route():
 
         self.roca_detected=False
         self.start_time = rospy.get_time()
-        self.rate= rospy.Rate(10)
+        self.rate= rospy.Rate(30)
         self.x=0.0
         self.y=0.0
         self.theta=0.0
-        self.velocity=0.33
+        self.velocity=0.18
         self.angular_velocity = 0.15
         self.coordinates = []
         self.arrived = False
@@ -34,6 +34,8 @@ class Route():
         self.ODOM_DISTANCE = const.ODOM_DISTANCE_CORRECTION
         self.posxa=self.x
         self.posya=self.y
+        self.control = 0
+        self.count = 0
     
     def callback(self,data):
         self.x=data.x
@@ -90,7 +92,6 @@ class Route():
 
     def set_angle(self,x1,y1):
         angle=np.arctan2((y1-self.posya),x1-self.posxa)
-        print(angle*180/math.pi)
         if angle<0:
             angle=abs(angle)+math.pi
         return angle
@@ -110,23 +111,46 @@ class Route():
             self.pub_cmd.publish(self.twist)
             if((self.x >x1-const.POSITION_ERROR and self.x<x1+const.POSITION_ERROR) and (self.y>y1-const.POSITION_ERROR and self.y<y1+const.POSITION_ERROR)):
                 break
-            
-        while(self.roca_detected):
-            print("Waiting")
+        if(self.roca_detected):
+            self.control=1
+            while(self.roca_detected):
+                pass
+            print("KEEP")
+            time.sleep(5)
+            print("CONTINUE")
+            print("ANGLE ",self.theta)
+            print("TANGLE ",angle)
+            if(self.control==1):
+                self.control = 0
+                if(self.count == 0):
+                    self.posxa = 0
+                    self.posya = 0
+                    x1 = self.coordinates[self.count][0]
+                    y1 = self.coordinates[self.count][0]
+                else:
+                    self.posxa= self.coordinates[self.count-2][0]
+                    self.posya = self.coordinates[self.count-2][1]
+                    x1 = self.coordinates[self.count-1][0]
+                    y1 = self.coordinates[self.count-1][1]
 
-        self.move_angle(angle)
+            distance = np.sqrt(pow(x1-self.posxa,2)+pow(y1-self.posya,2))
+            angle = self.set_angle(x1,y1)
 
-        if(self.x<x1 and self.y<y1):
-            distance = np.sqrt(pow(x1-self.x,2)+pow(y1-self.y,2))
-            target_time = self.ODOM_DISTANCE*distance/self.velocity+rospy.get_time()
-            while(target_time>rospy.get_time() and not self.roca_detected):
-                self.twist.linear.x=self.velocity
-                self.twist.angular.z=0
-                self.pub_cmd.publish(self.twist)
-                if((self.x >x1-const.POSITION_ERROR and self.x<x1+const.POSITION_ERROR) and (self.y>y1-const.POSITION_ERROR and self.y<y1+const.POSITION_ERROR)):
-                    break
+            self.move_angle(angle)
+            distance2 = np.sqrt(pow(self.posxa-self.x,2)+pow(self.posya-self.y,2))
+            distance3 = np.sqrt(pow(x1-self.x,2)+pow(y1-self.y,2))
+            if(distance2<distance):
+                print("Correcting distance ")
+                target_time2 = self.ODOM_DISTANCE*distance3/self.velocity+rospy.get_time()
+                while(target_time2>rospy.get_time() and not self.roca_detected):
+                    self.twist.linear.x=self.velocity
+                    self.twist.angular.z=0
+                    self.pub_cmd.publish(self.twist)
+                    if((self.x >x1-const.POSITION_ERROR and self.x<x1+const.POSITION_ERROR) and (self.y>y1-const.POSITION_ERROR and self.y<y1+const.POSITION_ERROR)):
+                        print("Distance corrected")
+                        break
 
-        self.arrived=False
+        self.arrived=True
         self.pub_go_to.publish(self.arrived)
 
         self.twist.linear.x=0
@@ -134,15 +158,18 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
-        self.simulation=False
         self.routine("route")
-        print(self.coordinates)
         while not rospy.is_shutdown():
+            self.count = 0
             for coordinates in self.coordinates:
-                print("Going to coordinate: ",self.coordinates.index(coordinates))
+                print("x: ",coordinates[0])
+                print("y: ",coordinates[1])
+                print("____________________routine_________________")
                 self.go_to(coordinates[0],coordinates[1])
                 self.posxa=coordinates[0]
                 self.posya=coordinates[1]
+                self.count+=1
+            print("Arrived at destination")
             break
             self.rate.sleep()
     
