@@ -1,5 +1,6 @@
 <launch>
   <node name="Odometry" pkg="navigationpuebla" type="odometry.py" output="screen"/>
-  <node name="Route" pkg="navigationpuebla" type="route4.py" output="screen"/>
-  <node name="Pygame" pkg="navigationpuebla" type="PygameSim.py" output="screen"/>
+  <node name="Mapping" pkg="navigationpuebla" type="mapping.py" output="screen"/>
+  <node name="center_and_aproach" pkg="navigationpuebla" type="deteccion7.py" output="screen"/>
+  <node name="Arm_collection" pkg="navigationpuebla" type="arm_collection.py" output="screen"/>
 </launch>
