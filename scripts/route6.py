@@ -2,7 +2,7 @@
 import numpy as np
 import rospy
 from geometry_msgs.msg import Twist, Pose2D
-from std_msgs.msg import String,Bool
+from std_msgs.msg import String,Bool, Int32
 from navigationpuebla.msg import odom,target
 import time
 import consts as const
@@ -15,6 +15,7 @@ class Route():
         self.twist = Twist()
         self.pub_cmd = rospy.Publisher("/cmd_vel",Twist,queue_size=10)
         self.pub_go_to = rospy.Publisher("/go_to",Bool,queue_size=10)
+        self.servocaja = rospy.Publisher("/servo_left",Int32,queue_size=10)
 
         rospy.Subscriber("/odometry",Pose2D,self.callback)
         rospy.Subscriber("/deteccion_roca",Bool,self.callback2)
@@ -145,9 +146,11 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
+        time.sleep(5)
         self.routine("route")
         while not rospy.is_shutdown():
             self.count = 0
+            self.servocaja.publish(120)
             for coordinates in self.coordinates:
                 print("x: ",coordinates[0])
                 print("y: ",coordinates[1])
@@ -159,6 +162,8 @@ class Route():
             print("Arrived at destination")
             break
             self.rate.sleep()
+        self.servocaja.publish(0)
+
     
 
 

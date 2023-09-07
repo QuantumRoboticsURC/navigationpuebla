@@ -13,6 +13,8 @@ gripper = rospy.Publisher("arm_teleop/prism",Float64,queue_size=1)
 
 while not rospy.is_shutdown():
     time.sleep(.5)
+    inicio=rospy.get_rostime()
+    print(inicio)
     print("Home")
     joint3.publish(360)
     time.sleep(.5)
@@ -106,6 +108,11 @@ while not rospy.is_shutdown():
     joint2.publish(130)
 
     time.sleep(10)
+
+    final=rospy.get_rostime()
+    print(final)
+
+    print(final-inicio)
 
 
 
