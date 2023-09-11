@@ -2,7 +2,7 @@
 import numpy as np
 import rospy
 from geometry_msgs.msg import Twist, Pose2D
-from std_msgs.msg import String,Bool
+from std_msgs.msg import String,Bool, Int32
 from navigationpuebla.msg import odom,target
 import time
 import consts as const
@@ -15,6 +15,7 @@ class Route():
         self.twist = Twist()
         self.pub_cmd = rospy.Publisher("/cmd_vel",Twist,queue_size=10)
         self.pub_go_to = rospy.Publisher("/go_to",Bool,queue_size=10)
+        self.servocaja = rospy.Publisher("/servo_left",Int32,queue_size=10)
 
         rospy.Subscriber("/odometry",Pose2D,self.callback)
         rospy.Subscriber("/deteccion_roca",Bool,self.callback2)
@@ -55,8 +56,8 @@ class Route():
         elif(param=="zig"):
             self.coordinates=[(0,3),(3,0)]
         elif(param=="route"):
-            self.coordinates = [(6,0),(6,1),(0.5,1),(0.5,3),(6,3),(6,5)]
-
+            #self.coordinates = [(6,0),(6,1),(0.5,1),(0.5,3),(6,3),(6,5)]
+            self.coordinates =[(8,0),(8,1),(0.5,1),(0.5,2),(8,2),(8,3),(0.5,3),(0.5,4),(8,4),(8,5),(0.5,5),(0.5,6),(8,6),(8,7),(0.5,7),(0.5,8),(8,8),(8,0),(0,0)]
             #self.coordinates = [(1,7),(2,7),(2,1),(3,1),(3,7),(4,7),(4,1),(5,1),(5,7),(6,7),(6,1),(7,1),(7,7)]
         else:
             print("Default")
@@ -145,9 +146,11 @@ class Route():
         self.pub_cmd.publish(self.twist)
 
     def main(self):
+        time.sleep(5)
         self.routine("route")
         while not rospy.is_shutdown():
             self.count = 0
+            self.servocaja.publish(120)
             for coordinates in self.coordinates:
                 print("x: ",coordinates[0])
                 print("y: ",coordinates[1])
@@ -159,6 +162,8 @@ class Route():
             print("Arrived at destination")
             break
             self.rate.sleep()
+        self.servocaja.publish(0)
+
     
 
 
