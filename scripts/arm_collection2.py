@@ -5,19 +5,25 @@ import time
 from geometry_msgs.msg import Twist
 class ArmCollection():
     def __init__(self):
+        #We start the node 
         rospy.init_node("Arm_collection",anonymous=True)
+        #We create the publishers for the arm joints and for the booleans conditions
         self.move_arm = rospy.Publisher("/arm_movement",Bool,queue_size=1)
         self.joint1 = rospy.Publisher("arm_teleop/joint1",Float64,queue_size=1)
         self.joint2 = rospy.Publisher("arm_teleop/joint2_lab",Float64,queue_size=1)
         self.joint3 = rospy.Publisher("arm_lab/joint3",Int32,queue_size=1)
         self.gripper = rospy.Publisher("arm_teleop/prism",Float64,queue_size=1)
-        rospy.Subscriber("/arm_movement",Bool,self.callback)
         self.cmd_vel_pub = rospy.Publisher("cmd_vel", Twist, queue_size=1)
+        #Subscriber for the boolean condition 
+        rospy.Subscriber("/arm_movement",Bool,self.callback)
+        #Variable of type Twist
         self.twist = Twist()
+        #Control Booleand
         self.arm = False
+
     def callback(self,data):
         self.arm = data.data
-
+    #Initial movements 
     def home(self):
         time.sleep(.5)
         print("Home")
@@ -32,7 +38,7 @@ class ArmCollection():
         self.joint1.publish(0)
         self.joint2.publish(65)
 
-
+    #Code that runs if the boolean condition is met
     def main(self):
         while(not rospy.is_shutdown()):
             if(self.arm):
@@ -96,9 +102,7 @@ class ArmCollection():
                 time.sleep(.5)
                 self.joint1.publish(0)
                 self.joint2.publish(130)
-
                 time.sleep(10)
-
                 time.sleep(.5)
                 print("Home")
                 self.joint3.publish(360)
