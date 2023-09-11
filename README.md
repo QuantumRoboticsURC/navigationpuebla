@@ -8,7 +8,7 @@ Pasos a seguir para utilizar el código:
     2. roslaunch ______ imu.launch
     3. roscd servos/scripts
     4. python3 lab.py
-  Archivos del código que han de correrse
+  Archivos del código que han de correrse: (La opción alternativa a correr estos es correr el launch que se encuentra en la carpeta launch del código)
     1. rosrun navigationpuebla odometry.py
     2. rosrun navigationpuebla mapping.py
     3. rosrun navigationpuebla arm_controller2.py
