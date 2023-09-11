@@ -10,16 +10,23 @@ import math
 
 class Route():
     def __init__(self):
+        #En este constructor, se inicializan todas las variables, publicadores y subscriptores
+        # Se inicia el nodo 
         rospy.init_node("Route",anonymous=True)
 
+        # Se crea el mensaje de tipo twist
         self.twist = Twist()
         self.pub_cmd = rospy.Publisher("/cmd_vel",Twist,queue_size=10)
+        #Publicador de una bandera booleana
         self.pub_go_to = rospy.Publisher("/go_to",Bool,queue_size=10)
+        #Publicador del servo de la caja
         self.servocaja = rospy.Publisher("/servo_left",Int32,queue_size=10)
 
+        #Se suscribe a la odometria recibida de odometry, y de una badera boolena
         rospy.Subscriber("/odometry",Pose2D,self.callback)
         rospy.Subscriber("/deteccion_roca",Bool,self.callback2)
 
+        #Se inicaliza la variables
         self.roca_detected=False
         self.start_time = rospy.get_time()
         self.rate= rospy.Rate(30)
@@ -31,7 +38,6 @@ class Route():
         self.coordinates = []
         self.arrived = False
         self.simulation = False
-        #self.ODOM_ANGLE = const.ODOM_ANGLE_CORRECTION
         self.ODOM_DISTANCE = const.ODOM_DISTANCE_CORRECTION
         self.posxa=self.x
         self.posya=self.y
@@ -39,14 +45,17 @@ class Route():
         self.count = 0
     
     def callback(self,data):
+        #Se escuchan los datos de odometry
         self.x=data.x
         self.y=data.y
         self.theta=data.theta
     
     def callback2(self,data):
+        #Se escucha la bandera booleana 
         self.roca_detected=data.data
 
     def routine(self,param):
+        #Se escoge la ruta que se va a ejecutar  
         if(param=="line"):
             self.coordinates=[(4,0)]
         elif(param=="angle45"):
@@ -57,6 +66,7 @@ class Route():
             self.coordinates=[(0,3),(3,0)]
         elif(param=="route"):
             #self.coordinates = [(6,0),(6,1),(0.5,1),(0.5,3),(6,3),(6,5)]
+            #Ruta de 10*10 m² 
             self.coordinates =[(8,0),(8,1),(0.5,1),(0.5,2),(8,2),(8,3),(0.5,3),(0.5,4),(8,4),(8,5),(0.5,5),(0.5,6),(8,6),(8,7),(0.5,7),(0.5,8),(8,8),(8,0),(0,0)]
             #self.coordinates = [(1,7),(2,7),(2,1),(3,1),(3,7),(4,7),(4,1),(5,1),(5,7),(6,7),(6,1),(7,1),(7,7)]
         else:
@@ -64,6 +74,7 @@ class Route():
             self.coordinates = [(1,1)]
     
     def move_angle(self,angle):
+        #Se mueve al ángulo y decide a donde girar 
         if(self.theta>angle):
             print("-Moving from angle ",self.theta, " to ",angle)
             while(self.theta>angle and not self.roca_detected):
@@ -73,8 +84,9 @@ class Route():
                     self.pub_cmd.publish(self.twist)
                     break
                 else:
-
+                    
                     self.twist.linear.x=0
+                    #Se calcula la velocidad dependiendo de lo que le hace falta girar 
                     self.twist.angular.z=-(abs((self.theta - 0)) * (self.angular_velocity- 0.08) / (2*math.pi - 0) + 0.08)
                     self.pub_cmd.publish(self.twist)
         else:
@@ -88,30 +100,38 @@ class Route():
                 else:
                     
                     self.twist.linear.x=0
+                    #Se calcula la velocidad dependiendo de lo que le hace falta girar 
                     self.twist.angular.z=(abs(self.theta - 0) * (self.angular_velocity - 0.08) / (2*math.pi - 0) + 0.08)
                     self.pub_cmd.publish(self.twist)
 
     def set_angle(self,x1,y1):
+        #Se calcula el angulo objetivo
         angle=np.arctan2((y1-self.posya),x1-self.posxa)
         if angle<0:
             angle=abs(angle)+math.pi
         return angle
     
     def go_to(self,x1,y1):
+        #Se calcula la distancia y cuanto se va a tener que girar
         distance = np.sqrt(pow(x1-self.posxa,2)+pow(y1-self.posya,2))
         angle = self.set_angle(x1,y1)
+        #Gira
         self.move_angle(angle)
+        #El tiempo que teoricamente se va tardar en llegar a la posición 
         target_time = self.ODOM_DISTANCE*distance/self.velocity+rospy.get_time()
 
         print("Coordinates: ",self.x," ,",self.y)
         print("Target coordinates: ",x1," ,",y1)
 
+        #Se va a avanzar al punto al que tiene que llegar
         while(target_time>rospy.get_time() and not self.roca_detected):
             self.twist.linear.x=self.velocity
             self.twist.angular.z=0
             self.pub_cmd.publish(self.twist)
+            #En caso de que se detecte que el rover está dentro de los márgenes de error aceptables para x,y se detiene el movimiento.
             if((self.x >x1-const.POSITION_ERROR and self.x<x1+const.POSITION_ERROR) and (self.y>y1-const.POSITION_ERROR and self.y<y1+const.POSITION_ERROR)):
                 break
+            #Si la roca fue detectada en el deteccion7.py, route se pone en pausa por  90 segundos para darle tiempo a la brazo de recoger y al robot de centrarse
         if(self.roca_detected):
             time.sleep(90)
             
@@ -120,15 +140,18 @@ class Route():
             print("ANGLE ",self.theta)
             print("TANGLE ",angle)
 
-
+            #Una vez termina la pausa, vuelve a calcular la distancia
             distance = np.sqrt(pow(x1-self.posxa,2)+pow(y1-self.posya,2))
+            #Vuelve a corregir el ángulo. 
             angle = self.set_angle(x1,y1)
-
             self.move_angle(angle)
+
             distance2 = np.sqrt(pow(self.posxa-self.x,2)+pow(self.posya-self.y,2))
             distance3 = np.sqrt(pow(x1-self.x,2)+pow(y1-self.y,2))
+            #revisa si el rover aún no ha llegado a su distancia objetivo 
             if(distance2<distance):
                 print("Correcting distance ")
+                #calcula el tiempo que le tomaría llegar a la posición  
                 target_time2 = self.ODOM_DISTANCE*distance3/self.velocity+rospy.get_time()
                 while(target_time2>rospy.get_time() and not self.roca_detected):
                     self.twist.linear.x=self.velocity
@@ -147,14 +170,18 @@ class Route():
 
     def main(self):
         time.sleep(5)
+        #Especifica la ruta que va a ejectutar
         self.routine("route")
         while not rospy.is_shutdown():
             self.count = 0
+            #Mueve el servo de la caja 
             self.servocaja.publish(120)
             for coordinates in self.coordinates:
+                #va moviendose a cada coordenada dentro de la ruta
                 print("x: ",coordinates[0])
                 print("y: ",coordinates[1])
                 print("____________________routine_________________")
+                #Manda el rover a la posición deseada
                 self.go_to(coordinates[0],coordinates[1])
                 self.posxa=coordinates[0]
                 self.posya=coordinates[1]
@@ -168,5 +195,6 @@ class Route():
 
 
 if __name__=="__main__":
+    # Se inicializa la el objeto de la clase route y se ejecuta su función
     route = Route()
     route.main()
