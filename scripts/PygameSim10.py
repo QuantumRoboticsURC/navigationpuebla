@@ -46,7 +46,7 @@ class PygameSim():
 
             pygame.init() #inicia el pygame
             if cont==0: #si es la primer vuelta en el ciclo, crea la ventana. Esto lo hace solo 1 vez.
-                ventana = pygame.display.set_mode((1000,1000))
+                ventana = pygame.display.set_mode((1000,1000)) #crea un area de 1000*1000  pixeles. 1:1 pixel:metros
                 pygame.display.set_caption("Simulador odometry")
                 cont = cont +1
             ventana.fill((0,255,0)) #llena la ventana de color verde cada iteración para borrar la imagen anterior
